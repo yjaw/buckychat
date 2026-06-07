@@ -37,3 +37,33 @@ npm run dev
 - The Go backend validates Supabase access tokens before protected HTTP or WebSocket actions.
 - Matchmaking and rooms are in memory, so production MVP must run one backend instance.
 - Calls are not recorded and media is not stored.
+
+## CI/CD
+
+GitHub Actions runs CI on every pull request and every push to `main`.
+
+Pushes to `main` also deploy:
+
+- Frontend: Vercel
+- Backend: Fly.io
+
+Add these GitHub repository secrets before the deploy workflow can run:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `VITE_API_BASE_URL`
+- `VITE_WS_BASE_URL`
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+- `FLY_API_TOKEN`
+
+The Fly app is configured as `buckychat-api` in `videochat-server/fly.toml`. Set backend runtime secrets in Fly:
+
+```sh
+flyctl secrets set \
+  DATABASE_URL="..." \
+  SUPABASE_URL="https://your-project-ref.supabase.co" \
+  SUPABASE_JWKS_URL="https://your-project-ref.supabase.co/auth/v1/.well-known/jwks.json" \
+  --app buckychat-api
+```
