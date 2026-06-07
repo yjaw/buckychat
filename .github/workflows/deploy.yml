@@ -25,7 +25,6 @@ jobs:
 
     steps:
       - name: Checkout
-        if: env.HAS_VERCEL_SECRETS == 'true'
         uses: actions/checkout@v4
 
       - name: Setup Node
@@ -72,7 +71,6 @@ jobs:
 
     steps:
       - name: Checkout
-        if: env.HAS_FLY_SECRETS == 'true'
         uses: actions/checkout@v4
 
       - name: Setup Fly.io
