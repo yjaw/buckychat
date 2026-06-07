@@ -20,6 +20,10 @@ export type ServerMessage = {
   payload?: unknown;
 };
 
+export type ReceivedMessage = ServerMessage & {
+  seq: number;
+};
+
 type ClientMessage = {
   type: string;
   roomID?: string;
@@ -30,12 +34,14 @@ type MatchContextValue = {
   connectionState: "offline" | "connecting" | "connected" | "error";
   queueState: "idle" | "waiting" | "matched";
   activeMatch: MatchInfo | null;
-  lastMessage: ServerMessage | null;
+  lastMessage: ReceivedMessage | null;
+  messages: ReceivedMessage[];
   error: string | null;
   joinQueue: () => void;
   leaveQueue: () => void;
   send: (message: ClientMessage) => void;
   clearMatch: () => void;
+  clearRoomMessages: (roomID: string) => void;
 };
 
 const MatchContext = createContext<MatchContextValue | null>(null);
@@ -43,10 +49,12 @@ const MatchContext = createContext<MatchContextValue | null>(null);
 export function MatchProvider({ children }: { children: ReactNode }) {
   const { session, profile } = useAuth();
   const wsRef = useRef<WebSocket | null>(null);
+  const messageSeqRef = useRef(0);
   const [connectionState, setConnectionState] = useState<MatchContextValue["connectionState"]>("offline");
   const [queueState, setQueueState] = useState<MatchContextValue["queueState"]>("idle");
   const [activeMatch, setActiveMatch] = useState<MatchInfo | null>(null);
-  const [lastMessage, setLastMessage] = useState<ServerMessage | null>(null);
+  const [lastMessage, setLastMessage] = useState<ReceivedMessage | null>(null);
+  const [messages, setMessages] = useState<ReceivedMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,6 +63,9 @@ export function MatchProvider({ children }: { children: ReactNode }) {
       wsRef.current = null;
       setConnectionState("offline");
       setQueueState("idle");
+      setActiveMatch(null);
+      setMessages([]);
+      setLastMessage(null);
       return;
     }
 
@@ -69,8 +80,10 @@ export function MatchProvider({ children }: { children: ReactNode }) {
     };
 
     ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data) as ServerMessage;
+      const raw = JSON.parse(event.data) as ServerMessage;
+      const msg: ReceivedMessage = { ...raw, seq: ++messageSeqRef.current };
       setLastMessage(msg);
+      setMessages((current) => [...current, msg].slice(-100));
 
       if (msg.type === "waiting") {
         setQueueState("waiting");
@@ -120,12 +133,18 @@ export function MatchProvider({ children }: { children: ReactNode }) {
     ws.send(JSON.stringify(message));
   }, []);
 
+  const clearRoomMessages = useCallback((roomID: string) => {
+    setMessages((current) => current.filter((msg) => msg.roomID !== roomID));
+    setLastMessage((current) => (current?.roomID === roomID ? null : current));
+  }, []);
+
   const value = useMemo<MatchContextValue>(
     () => ({
       connectionState,
       queueState,
       activeMatch,
       lastMessage,
+      messages,
       error,
       joinQueue: () => send({ type: "join" }),
       leaveQueue: () => send({ type: "leave" }),
@@ -133,9 +152,10 @@ export function MatchProvider({ children }: { children: ReactNode }) {
       clearMatch: () => {
         setActiveMatch(null);
         setQueueState("idle");
-      }
+      },
+      clearRoomMessages
     }),
-    [connectionState, queueState, activeMatch, lastMessage, error, send]
+    [connectionState, queueState, activeMatch, lastMessage, messages, error, send, clearRoomMessages]
   );
 
   return <MatchContext.Provider value={value}>{children}</MatchContext.Provider>;
@@ -148,4 +168,3 @@ export function useMatch() {
   }
   return value;
 }
-

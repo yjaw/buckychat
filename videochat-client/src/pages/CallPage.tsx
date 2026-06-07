@@ -12,13 +12,14 @@ type IceConfig = {
 export function CallPage() {
   const navigate = useNavigate();
   const { roomID } = useParams();
-  const { activeMatch, lastMessage, send, clearMatch } = useMatch();
+  const { activeMatch, messages, send, clearMatch, clearRoomMessages } = useMatch();
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const pendingSignalsRef = useRef<ServerMessage[]>([]);
   const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  const processedMessageSeqRef = useRef(0);
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
   const [reportOpen, setReportOpen] = useState(false);
@@ -141,25 +142,35 @@ export function CallPage() {
       pendingSignalsRef.current = [];
       localStreamRef.current?.getTracks().forEach((track) => track.stop());
       localStreamRef.current = null;
+      clearRoomMessages(roomID);
     };
-  }, [match, processSignal, roomID, send]);
+  }, [clearRoomMessages, match, processSignal, roomID, send]);
 
   useEffect(() => {
-    if (!lastMessage || lastMessage.roomID !== roomID) {
+    if (!roomID) {
       return;
     }
-    if (lastMessage.type === "partner_left") {
-      setNotice("Your partner left.");
-      clearMatch();
-      navigate("/lobby", { replace: true });
-      return;
+
+    const roomMessages = messages.filter(
+      (msg) => msg.seq > processedMessageSeqRef.current && msg.roomID === roomID
+    );
+
+    for (const msg of roomMessages) {
+      processedMessageSeqRef.current = Math.max(processedMessageSeqRef.current, msg.seq);
+
+      if (msg.type === "partner_left") {
+        setNotice("Your partner left.");
+        clearMatch();
+        navigate("/lobby", { replace: true });
+        return;
+      }
+      if (["offer", "answer", "ice-candidate"].includes(msg.type)) {
+        processSignal(msg).catch((caught) => {
+          setError(caught instanceof Error ? caught.message : "Could not process WebRTC signal");
+        });
+      }
     }
-    if (["offer", "answer", "ice-candidate"].includes(lastMessage.type)) {
-      processSignal(lastMessage).catch((caught) => {
-        setError(caught instanceof Error ? caught.message : "Could not process WebRTC signal");
-      });
-    }
-  }, [clearMatch, lastMessage, navigate, processSignal, roomID]);
+  }, [clearMatch, messages, navigate, processSignal, roomID]);
 
   if (!match || !roomID) {
     return <Navigate to="/lobby" replace />;
