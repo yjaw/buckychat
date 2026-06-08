@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { BookOpen, CheckCircle2, Loader2 } from "lucide-react";
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 
@@ -80,32 +81,75 @@ export function ConfirmSignupPage() {
   }, [refreshProfile]);
 
   return (
-    <main className="center-screen">
-      <section className="panel narrow">
-        {status === "error" ? (
-          <>
-            <h1>Confirmation needs attention</h1>
-            <p className="error">{error}</p>
-            <Link className="text-link" to="/login">
-              Go to sign in
-            </Link>
-          </>
-        ) : status === "verified" ? (
-          <>
-            <CheckCircle2 className="status-icon success-icon" aria-hidden="true" />
-            <h1>Account verified</h1>
-            <p className="success">
-              You have already verified your account: {verifiedEmail ?? "your wisc.edu email"}.
+    <main className="login-page">
+      <section className="login-panel" aria-labelledby="confirm-signup-title">
+        <Link className="login-brand" to="/" aria-label="BuckyChat home">
+          <BuckyChatLogo markClassName="login-brand-mark" />
+        </Link>
+
+        <div className="login-shell">
+          <div className="login-heading">
+            <h1 id="confirm-signup-title">
+              {status === "error"
+                ? "Confirmation needs attention"
+                : status === "verified"
+                  ? "Account verified"
+                  : "Verifying account"}
+            </h1>
+            <p>
+              {status === "verified"
+                ? "Your wisc.edu account is ready for BuckyChat"
+                : status === "error"
+                  ? "We could not finish your email confirmation"
+                : "Checking your wisc.edu confirmation link"}
             </p>
-          </>
-        ) : (
-          <>
-            <Loader2 className="spin" aria-hidden="true" />
-            <h1>Verifying account</h1>
-            <p className="muted">Checking your wisc.edu confirmation link.</p>
-          </>
-        )}
+          </div>
+
+          {status === "error" && (
+            <div className="login-form">
+              <p className="error">{error}</p>
+              <Link className="login-submit login-submit-link" to="/login">
+                Go to sign in
+              </Link>
+            </div>
+          )}
+
+          {status === "verified" && (
+            <div className="login-form">
+              <CheckCircle2 className="status-icon success-icon" aria-hidden="true" />
+              <p className="success">
+                You have already verified your account: {verifiedEmail ?? "your wisc.edu email"}.
+              </p>
+            </div>
+          )}
+
+          {status === "checking" && (
+            <div className="login-form">
+              <Loader2 className="spin status-icon" aria-hidden="true" />
+              <p className="muted">Verifying account...</p>
+            </div>
+          )}
+        </div>
       </section>
+
+      <aside className="login-story" aria-label="Email verification story">
+        <Link className="login-doc-link" to="/">
+          <BookOpen aria-hidden="true" />
+          Home
+        </Link>
+        <figure>
+          <blockquote>
+            A verified campus email keeps BuckyChat focused on real UW-Madison
+            conversations.
+          </blockquote>
+          <figcaption>
+            <span className="login-avatar" aria-hidden="true">
+              BC
+            </span>
+            <span>Email verification</span>
+          </figcaption>
+        </figure>
+      </aside>
     </main>
   );
 }

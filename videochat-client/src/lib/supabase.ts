@@ -3,6 +3,9 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 const authRedirectUrl = import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined;
+const passwordResetRedirectUrl = import.meta.env.VITE_PASSWORD_RESET_REDIRECT_URL as
+  | string
+  | undefined;
 
 export const supabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 export const supabaseConfigIssues = [
@@ -34,5 +37,9 @@ export function getAuthRedirectTo() {
 }
 
 export function getPasswordResetRedirectTo() {
+  if (passwordResetRedirectUrl?.trim()) {
+    return passwordResetRedirectUrl.trim();
+  }
+
   return `${window.location.origin}/reset-password`;
 }

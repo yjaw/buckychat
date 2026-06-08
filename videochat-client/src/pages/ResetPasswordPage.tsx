@@ -1,24 +1,30 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, Eye, EyeOff } from "lucide-react";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { supabase } from "../lib/supabase";
 
 type ResetStatus = "checking" | "ready" | "success" | "error";
 
 export function ResetPasswordPage() {
+  const startedSessionCheck = useRef(false);
   const [status, setStatus] = useState<ResetStatus>("checking");
   const [email, setEmail] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [tokenHash, setTokenHash] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    let alive = true;
+    if (startedSessionCheck.current) {
+      return;
+    }
+    startedSessionCheck.current = true;
 
     async function checkResetSession() {
       const urlError = authUrlError();
@@ -28,10 +34,23 @@ export function ResetPasswordPage() {
         return;
       }
 
-      const { data, error: sessionError } = await supabase.auth.getSession();
-      if (!alive) {
+      const params = new URLSearchParams(window.location.search);
+      const nextTokenHash = params.get("token_hash")?.trim();
+      const type = params.get("type")?.trim() || "recovery";
+
+      if (nextTokenHash) {
+        if (type !== "recovery") {
+          setError("This reset link is not valid for password recovery.");
+          setStatus("error");
+          return;
+        }
+
+        setTokenHash(nextTokenHash);
+        setStatus("ready");
         return;
       }
+
+      const { data, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError) {
         setError(sessionError.message);
@@ -50,10 +69,6 @@ export function ResetPasswordPage() {
     }
 
     void checkResetSession();
-
-    return () => {
-      alive = false;
-    };
   }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -72,6 +87,23 @@ export function ResetPasswordPage() {
 
     setLoading(true);
     try {
+      if (tokenHash) {
+        const { data, error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: "recovery" as EmailOtpType
+        });
+
+        if (verifyError) {
+          setError("Email link is invalid or has expired.");
+          setStatus("error");
+          return;
+        }
+
+        clearResetTokenFromUrl();
+        setTokenHash(null);
+        setEmail(data.user?.email ?? data.session?.user.email ?? null);
+      }
+
       const { error: updateError } = await supabase.auth.updateUser({
         password
       });
@@ -211,4 +243,11 @@ function authUrlError() {
     searchParams.get("error") ??
     hashParams.get("error")
   );
+}
+
+function clearResetTokenFromUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("token_hash");
+  url.searchParams.delete("type");
+  window.history.replaceState(window.history.state, "", url.toString());
 }

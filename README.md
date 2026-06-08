@@ -65,6 +65,7 @@ Add these GitHub repository secrets before the deploy workflow can run:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
+- `VITE_PASSWORD_RESET_REDIRECT_URL` (optional; use a canonical `/reset-password` URL if needed)
 - `VITE_API_BASE_URL`
 - `VITE_WS_BASE_URL`
 - `VERCEL_TOKEN`

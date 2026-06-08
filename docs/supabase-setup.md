@@ -11,9 +11,11 @@
    `public.madfriends_before_user_created`.
 7. In Authentication > URL Configuration, set Site URL to your frontend origin and add the auth URLs to Redirect URLs. If Vite starts on a different port, use that actual port everywhere:
    - Local: `http://localhost:5173`, `http://localhost:5173/auth/callback`, `http://localhost:5173/confirm-signup`, and `http://localhost:5173/reset-password`
-   - Production: `https://buckychat.com`, `https://buckychat.com/auth/callback`, `https://buckychat.com/confirm-signup`, and `https://buckychat.com/reset-password`
+   - Production apex: `https://buckychat.com`, `https://buckychat.com/auth/callback`, `https://buckychat.com/confirm-signup`, and `https://buckychat.com/reset-password`
+   - Production www, if `www.buckychat.com` is live: `https://www.buckychat.com`, `https://www.buckychat.com/auth/callback`, `https://www.buckychat.com/confirm-signup`, and `https://www.buckychat.com/reset-password`
 8. Optional: set `VITE_AUTH_REDIRECT_URL` to the same callback URL. If it is not set, the app uses the current browser origin plus `/auth/callback`.
-9. In Authentication > Email Templates > Confirm signup, use the template in `docs/supabase-confirm-signup-template.html`:
+9. Optional: set `VITE_PASSWORD_RESET_REDIRECT_URL` to a canonical reset URL such as `https://buckychat.com/reset-password` if the frontend can be reached from multiple hosts.
+10. In Authentication > Email Templates > Confirm signup, use the template in `docs/supabase-confirm-signup-template.html`:
 
 ```html
 <h2>Confirm your account</h2>
@@ -27,12 +29,15 @@
   </a>
 </p>
 ```
+11. In Authentication > Email Templates > Reset Password, use the template in `docs/supabase-reset-password-template.html`.
 
 The hook rejects every email domain except exact `wisc.edu`. For example, `student@wisc.edu` is allowed and `student@sub.wisc.edu` is rejected.
 
 Use `{{ .TokenHash }}` instead of direct `{{ .ConfirmationURL }}` links. The `/confirm-signup` page verifies the token as soon as the user opens the email link, then shows the verified `wisc.edu` account email.
 
-Password recovery uses Supabase's reset email with the app-provided `/reset-password` redirect URL. That route reads the recovery session from the link, lets the user set a new password, and then signs out the local recovery session so they can sign in normally.
+Password recovery should also use `{{ .TokenHash }}` in the reset email template. The `/reset-password` page waits until the user submits a new password before verifying the recovery token, which avoids consuming the one-time token during simple link previews. If reset links land on the homepage, the usual cause is that the exact reset URL, including `www` if used, is missing from Supabase Redirect URLs.
+
+The forgot password UI intentionally does not check whether an email has an account before showing success. This avoids revealing which `wisc.edu` addresses are registered.
 
 If signups succeed in the UI but no email arrives, check Authentication > Logs in Supabase. Also confirm the Email provider is enabled, email confirmation is enabled, and SMTP/rate limits are not blocking delivery.
 
