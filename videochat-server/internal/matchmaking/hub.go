@@ -193,7 +193,9 @@ func (h *Hub) handleMessage(client *Client, msg Incoming) {
 		h.leave(client)
 	case "offer", "answer", "ice-candidate":
 		h.relay(client, msg)
-	case "skip", "hangup":
+	case "skip":
+		h.endRoom(client, "skipped")
+	case "hangup":
 		h.endRoom(client, "partner_left")
 	default:
 		client.sendMessage(Outgoing{Type: "error", Message: "unknown message type"})

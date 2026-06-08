@@ -95,6 +95,11 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         setActiveMatch({ roomID: msg.roomID, partnerID: msg.partnerID, role: msg.role });
         setQueueState("matched");
       }
+      if (msg.type === "skipped") {
+        setActiveMatch(null);
+        setQueueState("waiting");
+        ws.send(JSON.stringify({ type: "join" }));
+      }
       if (msg.type === "partner_left" || msg.type === "banned") {
         setActiveMatch(null);
         setQueueState("idle");

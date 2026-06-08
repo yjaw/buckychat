@@ -326,6 +326,7 @@ export function CallPage() {
     queueState,
     activeMatch,
     messages,
+    joinQueue,
     send,
     leaveQueue,
     clearMatch,
@@ -696,6 +697,10 @@ export function CallPage() {
     );
   }
 
+  if (!match && roomID !== WAITING_ROOM_ID && queueState === "waiting") {
+    return <Navigate to="/call/waiting" replace />;
+  }
+
   if (!match || !roomID) {
     return <Navigate to="/lobby" replace />;
   }
@@ -724,8 +729,15 @@ export function CallPage() {
     });
   }
 
-  function endCall(type: "hangup" | "skip") {
-    send({ type, roomID });
+  function skipCall() {
+    send({ type: "skip", roomID });
+    clearMatch();
+    joinQueue();
+    navigate("/call/waiting", { replace: true });
+  }
+
+  function leaveCall() {
+    send({ type: "hangup", roomID });
     clearMatch();
     navigate("/lobby", { replace: true });
   }
@@ -812,10 +824,10 @@ export function CallPage() {
         <button className="icon-button control" onClick={() => setReportOpen(true)} title="Report">
           <Flag aria-hidden="true" />
         </button>
-        <button className="icon-button control" onClick={() => endCall("skip")} title="Skip">
+        <button className="icon-button control" onClick={skipCall} title="Skip">
           <SkipForward aria-hidden="true" />
         </button>
-        <button className="icon-button danger control" onClick={() => endCall("hangup")} title="Hang up">
+        <button className="icon-button danger control" onClick={leaveCall} title="Leave">
           <PhoneOff aria-hidden="true" />
         </button>
       </footer>
