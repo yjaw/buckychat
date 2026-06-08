@@ -87,6 +87,114 @@ const initialDebugState: DebugState = {
   updatedAt: "-"
 };
 
+const WAITING_ROOM_ID = "waiting";
+const DVD_COLORS = ["#ffffff", "#ef4444", "#facc15", "#22c55e", "#38bdf8", "#c084fc"];
+
+function DvdScreensaver() {
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const logoRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!stageRef.current || !logoRef.current) {
+      return;
+    }
+    const stageElement = stageRef.current!;
+    const logoElement = logoRef.current!;
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let animationFrame = 0;
+    let colorIndex = 0;
+    let x = 24;
+    let y = 136;
+    let velocityX = 82;
+    let velocityY = 61;
+    let lastTime = performance.now();
+
+    function setLogoColor() {
+      logoElement.style.color = DVD_COLORS[colorIndex];
+    }
+
+    function clampPosition() {
+      const maxX = Math.max(stageElement.clientWidth - logoElement.offsetWidth, 0);
+      const maxY = Math.max(stageElement.clientHeight - logoElement.offsetHeight, 0);
+      x = Math.min(Math.max(x, 0), maxX);
+      y = Math.min(Math.max(y, 0), maxY);
+      logoElement.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    }
+
+    setLogoColor();
+    clampPosition();
+
+    if (reducedMotion.matches) {
+      x = Math.max((stageElement.clientWidth - logoElement.offsetWidth) / 2, 0);
+      y = Math.max((stageElement.clientHeight - logoElement.offsetHeight) / 2, 0);
+      logoElement.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      return;
+    }
+
+    function animate(time: number) {
+      const deltaSeconds = Math.min((time - lastTime) / 1000, 0.05);
+      lastTime = time;
+
+      const maxX = Math.max(stageElement.clientWidth - logoElement.offsetWidth, 0);
+      const maxY = Math.max(stageElement.clientHeight - logoElement.offsetHeight, 0);
+      let hitWall = false;
+
+      x += velocityX * deltaSeconds;
+      y += velocityY * deltaSeconds;
+
+      if (x >= maxX) {
+        x = maxX;
+        velocityX = -Math.abs(velocityX);
+        hitWall = true;
+      } else if (x <= 0) {
+        x = 0;
+        velocityX = Math.abs(velocityX);
+        hitWall = true;
+      }
+
+      if (y >= maxY) {
+        y = maxY;
+        velocityY = -Math.abs(velocityY);
+        hitWall = true;
+      } else if (y <= 0) {
+        y = 0;
+        velocityY = Math.abs(velocityY);
+        hitWall = true;
+      }
+
+      if (hitWall) {
+        colorIndex = (colorIndex + 1) % DVD_COLORS.length;
+        setLogoColor();
+      }
+
+      logoElement.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      animationFrame = window.requestAnimationFrame(animate);
+    }
+
+    const handleResize = () => {
+      clampPosition();
+    };
+
+    window.addEventListener("resize", handleResize);
+    animationFrame = window.requestAnimationFrame(animate);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  return (
+    <div ref={stageRef} className="dvd-screensaver" aria-hidden="true">
+      <div ref={logoRef} className="dvd-logo">
+        <span>DVD</span>
+        <small>VIDEO</small>
+      </div>
+    </div>
+  );
+}
+
 function nowLabel() {
   return new Date().toLocaleTimeString([], {
     hour: "2-digit",
@@ -213,7 +321,16 @@ function formatBytes(value: number) {
 export function CallPage() {
   const navigate = useNavigate();
   const { roomID } = useParams();
-  const { connectionState, activeMatch, messages, send, clearMatch, clearRoomMessages } = useMatch();
+  const {
+    connectionState,
+    queueState,
+    activeMatch,
+    messages,
+    send,
+    leaveQueue,
+    clearMatch,
+    clearRoomMessages
+  } = useMatch();
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -231,6 +348,7 @@ export function CallPage() {
   const [debug, setDebug] = useState<DebugState>(initialDebugState);
 
   const match = activeMatch?.roomID === roomID ? activeMatch : null;
+  const waitingForMatch = roomID === WAITING_ROOM_ID && !match;
 
   const updateDebug = useCallback((patch: Partial<DebugState>) => {
     setDebug((current) => ({
@@ -319,6 +437,12 @@ export function CallPage() {
     },
     [flushPendingIceCandidates, roomID, send, updateDebug]
   );
+
+  useEffect(() => {
+    if (waitingForMatch && activeMatch) {
+      navigate(`/call/${activeMatch.roomID}`, { replace: true, state: activeMatch });
+    }
+  }, [activeMatch, navigate, waitingForMatch]);
 
   useEffect(() => {
     if (!match || !roomID) {
@@ -546,6 +670,31 @@ export function CallPage() {
       }
     }
   }, [clearMatch, messages, navigate, processSignal, roomID]);
+
+  if (waitingForMatch) {
+    function leaveWaitingRoom() {
+      leaveQueue();
+      navigate("/lobby", { replace: true });
+    }
+
+    return (
+      <main className="call-screen waiting-call-screen">
+        <section className="waiting-room-stage" aria-label="Waiting for a match">
+          <DvdScreensaver />
+          <div className="waiting-room-overlay" aria-live="polite">
+            <p>{queueState === "waiting" ? "Finding your match" : "Entering the room"}</p>
+            <h1>Enjoy the DVD logo while BuckyChat looks around.</h1>
+          </div>
+        </section>
+
+        <footer className="call-controls">
+          <button className="icon-button danger control" onClick={leaveWaitingRoom} title="Leave queue">
+            <PhoneOff aria-hidden="true" />
+          </button>
+        </footer>
+      </main>
+    );
+  }
 
   if (!match || !roomID) {
     return <Navigate to="/lobby" replace />;

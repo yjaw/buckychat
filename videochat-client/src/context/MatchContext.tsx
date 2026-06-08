@@ -146,8 +146,14 @@ export function MatchProvider({ children }: { children: ReactNode }) {
       lastMessage,
       messages,
       error,
-      joinQueue: () => send({ type: "join" }),
-      leaveQueue: () => send({ type: "leave" }),
+      joinQueue: () => {
+        setQueueState("waiting");
+        send({ type: "join" });
+      },
+      leaveQueue: () => {
+        setQueueState("idle");
+        send({ type: "leave" });
+      },
       send,
       clearMatch: () => {
         setActiveMatch(null);

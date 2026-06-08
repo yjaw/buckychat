@@ -19,6 +19,11 @@ export function LobbyPage() {
   const connected = connectionState === "connected";
   const waiting = queueState === "waiting";
 
+  function startMatchSearch() {
+    joinQueue();
+    navigate("/call/waiting");
+  }
+
   return (
     <main className="lobby-page">
       <header className="landing-header page-header">
@@ -55,7 +60,7 @@ export function LobbyPage() {
                 Cancel
               </button>
             ) : (
-              <button className="primary large" onClick={joinQueue} disabled={!connected}>
+              <button className="primary large" onClick={startMatchSearch} disabled={!connected}>
                 <Search aria-hidden="true" />
                 Find match
               </button>
