@@ -30,6 +30,7 @@
 </p>
 ```
 11. In Authentication > Email Templates > Reset Password, use the template in `docs/supabase-reset-password-template.html`.
+12. In Authentication > Email Templates > Password Changed, use the template in `docs/supabase-password-changed-template.html`.
 
 The hook rejects every email domain except exact `wisc.edu`. For example, `student@wisc.edu` is allowed and `student@sub.wisc.edu` is rejected.
 

@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, Eye, EyeOff } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
+import { CooldownSubmitButton } from "../components/CooldownSubmitButton";
 import { getAuthRedirectTo, supabase } from "../lib/supabase";
 import { hasWiscDomain, normalizeEmail } from "../lib/email";
 
@@ -74,12 +75,8 @@ export function RegisterPage() {
   }, [resendCooldown]);
 
   const resendLocked = resendCooldown > 0;
-  const resendProgress = ((resendCooldownSeconds - resendCooldown) / resendCooldownSeconds) * 100;
-  const normalizedCurrentEmail = normalizeEmail(email);
-  const emailOnCooldown = Boolean(
-    confirmationEmail && confirmationEmail === normalizedCurrentEmail && resendLocked
-  );
   const showingResendAction = Boolean(confirmationEmail);
+  const resendButtonLocked = showingResendAction && resendLocked;
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -104,11 +101,6 @@ export function RegisterPage() {
       setError("Use at least 8 characters.");
       return;
     }
-    if (emailOnCooldown) {
-      setError(`Please wait ${resendCooldown}s before sending another confirmation email.`);
-      return;
-    }
-
     setLoading(true);
     try {
       const { data, error: authError } = await supabase.auth.signUp({
@@ -235,23 +227,15 @@ export function RegisterPage() {
             {errorDetails && <pre className="code-block">{errorDetails}</pre>}
             {message && <p className="success">{message}</p>}
 
-            <button className="login-submit" type="submit" disabled={loading || resending || emailOnCooldown}>
-              {loading
-                ? "Creating account"
-                : resending
-                  ? "Sending confirmation"
-                  : emailOnCooldown
-                    ? `Resend in ${resendCooldown}s`
-                    : showingResendAction
-                      ? "Resend confirmation"
-                      : "Create account"}
-            </button>
-
-            {confirmationEmail && resendLocked && (
-              <div className="cooldown" aria-label={`${resendCooldown} seconds before resend is available`}>
-                <span style={{ width: `${resendProgress}%` }} />
-              </div>
-            )}
+            <CooldownSubmitButton
+              cooldownLabel={(seconds) => `Resend in ${seconds}s`}
+              cooldownSeconds={resendButtonLocked ? resendCooldown : 0}
+              cooldownTotalSeconds={resendCooldownSeconds}
+              loading={loading || resending}
+              loadingLabel={loading ? "Creating account" : "Sending confirmation"}
+            >
+              {showingResendAction ? "Resend confirmation" : "Create account"}
+            </CooldownSubmitButton>
           </form>
 
           <p className="login-switch">

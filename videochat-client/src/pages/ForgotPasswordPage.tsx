@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, MailCheck } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
+import { CooldownSubmitButton } from "../components/CooldownSubmitButton";
 import { hasWiscDomain, normalizeEmail } from "../lib/email";
 import { getPasswordResetRedirectTo, supabase } from "../lib/supabase";
 
@@ -32,7 +33,6 @@ export function ForgotPasswordPage() {
 
   const normalizedCurrentEmail = normalizeEmail(email);
   const resetLocked = resetCooldown > 0 && resetEmail === normalizedCurrentEmail;
-  const resetProgress = ((resetCooldownSeconds - resetCooldown) / resetCooldownSeconds) * 100;
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -102,21 +102,15 @@ export function ForgotPasswordPage() {
             {error && <p className="error">{error}</p>}
             {message && <p className="success">{message}</p>}
 
-            <button className="login-submit" type="submit" disabled={loading || resetLocked}>
-              {loading
-                ? "Sending reset link"
-                : resetLocked
-                  ? `Send again in ${resetCooldown}s`
-                  : resetEmail === normalizedCurrentEmail
-                    ? "Send another reset link"
-                    : "Send reset link"}
-            </button>
-
-            {resetLocked && (
-              <div className="cooldown" aria-label={`${resetCooldown} seconds before reset is available`}>
-                <span style={{ width: `${resetProgress}%` }} />
-              </div>
-            )}
+            <CooldownSubmitButton
+              cooldownLabel={(seconds) => `Send again in ${seconds}s`}
+              cooldownSeconds={resetLocked ? resetCooldown : 0}
+              cooldownTotalSeconds={resetCooldownSeconds}
+              loading={loading}
+              loadingLabel="Sending reset link"
+            >
+              {resetEmail === normalizedCurrentEmail ? "Send another reset link" : "Send reset link"}
+            </CooldownSubmitButton>
           </form>
 
           <p className="login-switch">

@@ -384,6 +384,32 @@ a {
   background: var(--badger-red-dark);
 }
 
+.cooldown-submit {
+  position: relative;
+  overflow: hidden;
+}
+
+.cooldown-submit-active:disabled {
+  border-color: #cf5e66;
+  background: #dc7078;
+  opacity: 1;
+}
+
+.cooldown-submit-progress {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--badger-red);
+  transition: width 0.35s ease;
+}
+
+.cooldown-submit-label {
+  position: relative;
+  z-index: 1;
+}
+
 .login-submit-link {
   display: inline-flex;
   align-items: center;
@@ -874,21 +900,6 @@ button svg,
     font-size: 0.95rem;
     font-weight: 900;
   }
-}
-
-.cooldown {
-  height: 6px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #e5e7eb;
-}
-
-.cooldown span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--badger-red);
-  transition: width 0.35s ease;
 }
 
 .topbar {
