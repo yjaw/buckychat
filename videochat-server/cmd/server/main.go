@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -37,6 +41,10 @@ type iceServer struct {
 	URLs       []string `json:"urls"`
 	Username   string   `json:"username,omitempty"`
 	Credential string   `json:"credential,omitempty"`
+}
+
+type cloudflareTurnResponse struct {
+	ICEServers []iceServer `json:"iceServers"`
 }
 
 func main() {
@@ -92,7 +100,14 @@ func main() {
 		return c.JSON(user)
 	})
 	api.Get("/ice-config", requireUser, func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"iceServers": buildICEServers(cfg)})
+		ctx, cancel := context.WithTimeout(c.UserContext(), 5*time.Second)
+		defer cancel()
+		iceServers, err := buildICEServers(ctx, cfg)
+		if err != nil {
+			log.Printf("ice config failed: %v", err)
+			return httpx.Error(c, fiber.StatusBadGateway, "could not generate TURN credentials")
+		}
+		return c.JSON(fiber.Map{"iceServers": iceServers})
 	})
 	api.Post("/reports", requireUser, func(c *fiber.Ctx) error {
 		user, _ := auth.CurrentUser(c)
@@ -179,7 +194,11 @@ func requireAdmin(admins map[string]bool) fiber.Handler {
 	}
 }
 
-func buildICEServers(cfg config.Config) []iceServer {
+func buildICEServers(ctx context.Context, cfg config.Config) ([]iceServer, error) {
+	if cfg.CloudflareTurnKeyID != "" && cfg.CloudflareTurnAPIToken != "" {
+		return cloudflareTurnCredentials(ctx, cfg)
+	}
+
 	stunURLs := []string{}
 	turnURLs := []string{}
 	for _, raw := range cfg.TurnURLs {
@@ -202,5 +221,42 @@ func buildICEServers(cfg config.Config) []iceServer {
 			Credential: cfg.TurnCredential,
 		})
 	}
-	return servers
+	return servers, nil
+}
+
+func cloudflareTurnCredentials(ctx context.Context, cfg config.Config) ([]iceServer, error) {
+	body, err := json.Marshal(fiber.Map{"ttl": cfg.CloudflareTurnTTL})
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf(
+		"https://rtc.live.cloudflare.com/v1/turn/keys/%s/credentials/generate-ice-servers",
+		cfg.CloudflareTurnKeyID,
+	)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+cfg.CloudflareTurnAPIToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("cloudflare turn credentials failed with status %d", resp.StatusCode)
+	}
+
+	var payload cloudflareTurnResponse
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return nil, err
+	}
+	if len(payload.ICEServers) == 0 {
+		return nil, errors.New("cloudflare turn credentials response did not include iceServers")
+	}
+	return payload.ICEServers, nil
 }

@@ -7,7 +7,7 @@ BuckyChat is a lean campus-only random video chat MVP for verified `@wisc.edu` u
 - Frontend: React, Vite, TypeScript, Supabase JS
 - Backend: Go, Fiber, Fiber WebSocket
 - Auth and database: Supabase Auth + Postgres
-- Video: native WebRTC with Google STUN and optional TURN
+- Video: native WebRTC with Google STUN, static TURN, or Cloudflare TURN
 - Deployment target: Vercel frontend and a single Fly.io backend instance for MVP
 
 ## Local setup
@@ -29,6 +29,20 @@ cd videochat-client
 npm install
 npm run dev
 ```
+
+## TURN configuration
+
+By default, the backend returns Google STUN from `TURN_URLS`. For a static TURN server, set `TURN_URLS` to comma-separated `turn:` or `turns:` URLs and provide `TURN_USERNAME` plus `TURN_CREDENTIAL`.
+
+For Cloudflare Realtime TURN, keep the long-lived key server-side and set:
+
+```sh
+CLOUDFLARE_TURN_KEY_ID="..."
+CLOUDFLARE_TURN_API_TOKEN="..."
+CLOUDFLARE_TURN_TTL=86400
+```
+
+When both Cloudflare variables are present, `/api/ice-config` generates short-lived `iceServers` for the browser. `CLOUDFLARE_TURN_TTL` should be longer than the longest expected call.
 
 ## MVP constraints
 
@@ -65,5 +79,7 @@ flyctl secrets set \
   DATABASE_URL="..." \
   SUPABASE_URL="https://your-project-ref.supabase.co" \
   SUPABASE_JWKS_URL="https://your-project-ref.supabase.co/auth/v1/.well-known/jwks.json" \
+  CLOUDFLARE_TURN_KEY_ID="..." \
+  CLOUDFLARE_TURN_API_TOKEN="..." \
   --app buckychat-api
 ```

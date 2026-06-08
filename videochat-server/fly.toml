@@ -9,6 +9,7 @@ primary_region = "ord"
   SERVER_ADDR = ":8080"
   CLIENT_ORIGIN = "https://buckychat.com"
   TURN_URLS = "stun:stun.l.google.com:19302"
+  CLOUDFLARE_TURN_TTL = "86400"
   ALLOW_SELF_MATCH = "false"
 
 [http_service]
