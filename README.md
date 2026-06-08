@@ -8,7 +8,7 @@ BuckyChat is a lean campus-only random video chat MVP for verified `@wisc.edu` u
 - Backend: Go, Fiber, Fiber WebSocket
 - Auth and database: Supabase Auth + Postgres
 - Video: native WebRTC with Google STUN, static TURN, or Cloudflare TURN
-- Deployment target: Vercel frontend and a single Fly.io backend instance for MVP
+- Deployment target: Vercel frontend and a single Railway backend instance for MVP
 
 ## Local setup
 
@@ -59,7 +59,7 @@ GitHub Actions runs CI on every pull request and every push to `main`.
 Pushes to `main` also deploy:
 
 - Frontend: Vercel
-- Backend: Fly.io
+- Backend: Railway
 
 Add these GitHub repository secrets before the deploy workflow can run:
 
@@ -71,16 +71,15 @@ Add these GitHub repository secrets before the deploy workflow can run:
 - `VERCEL_TOKEN`
 - `VERCEL_ORG_ID`
 - `VERCEL_PROJECT_ID`
-- `FLY_API_TOKEN`
+- `RAILWAY_TOKEN`
 
-The Fly app is configured as `buckychat-api` in `videochat-server/fly.toml`. Set backend runtime secrets in Fly:
+Set backend runtime environment variables in the Railway dashboard or via the Railway CLI:
 
 ```sh
-flyctl secrets set \
+railway variables set \
   DATABASE_URL="..." \
   SUPABASE_URL="https://your-project-ref.supabase.co" \
   SUPABASE_JWKS_URL="https://your-project-ref.supabase.co/auth/v1/.well-known/jwks.json" \
   CLOUDFLARE_TURN_KEY_ID="..." \
-  CLOUDFLARE_TURN_API_TOKEN="..." \
-  --app buckychat-api
+  CLOUDFLARE_TURN_API_TOKEN="..."
 ```
