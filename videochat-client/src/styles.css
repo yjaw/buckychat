@@ -733,6 +733,16 @@ button svg,
   font-weight: 700;
 }
 
+.status-icon {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 16px;
+}
+
+.success-icon {
+  color: #047857;
+}
+
 @media (min-width: 920px) {
   .login-page {
     grid-template-columns: minmax(480px, 0.82fr) minmax(0, 1.18fr);

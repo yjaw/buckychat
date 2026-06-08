@@ -30,7 +30,7 @@
 
 The hook rejects every email domain except exact `wisc.edu`. For example, `student@wisc.edu` is allowed and `student@sub.wisc.edu` is rejected.
 
-Use `{{ .TokenHash }}` instead of direct `{{ .ConfirmationURL }}` links. Some email security tools prefetch direct confirmation links, which can consume the one-time token before the user clicks and make Supabase show an invalid or expired link even though the account was confirmed. The `/confirm-signup` page verifies the token only after the user clicks its confirmation button.
+Use `{{ .TokenHash }}` instead of direct `{{ .ConfirmationURL }}` links. The `/confirm-signup` page verifies the token as soon as the user opens the email link, then shows the verified `wisc.edu` account email.
 
 If signups succeed in the UI but no email arrives, check Authentication > Logs in Supabase. Also confirm the Email provider is enabled, email confirmation is enabled, and SMTP/rate limits are not blocking delivery.
 

@@ -1,71 +1,88 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 
 const allowedOtpTypes = new Set(["email", "signup"]);
+type ConfirmationStatus = "checking" | "verified" | "error";
 
 export function ConfirmSignupPage() {
-  const navigate = useNavigate();
   const { refreshProfile } = useAuth();
-  const [tokenHash, setTokenHash] = useState("");
-  const [type, setType] = useState<EmailOtpType>("email");
+  const startedVerification = useRef(false);
+  const [status, setStatus] = useState<ConfirmationStatus>("checking");
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const nextTokenHash = params.get("token_hash")?.trim();
-    const nextType = params.get("type")?.trim() || "email";
-
-    if (!nextTokenHash) {
-      setError("This confirmation link is missing its token.");
+    if (startedVerification.current) {
       return;
     }
-    if (!allowedOtpTypes.has(nextType)) {
-      setError("This confirmation link is not valid for signup.");
-      return;
-    }
+    startedVerification.current = true;
 
-    setTokenHash(nextTokenHash);
-    setType(nextType as EmailOtpType);
-  }, []);
+    async function verifyAccount() {
+      const params = new URLSearchParams(window.location.search);
+      const tokenHash = params.get("token_hash")?.trim();
+      const type = params.get("type")?.trim() || "email";
 
-  async function confirmAccount() {
-    if (!tokenHash) {
-      return;
-    }
-
-    setError(null);
-    setVerifying(true);
-    try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        token_hash: tokenHash,
-        type
-      });
-      if (verifyError) {
-        setError(
-          verifyError.message.toLowerCase().includes("invalid") ||
-            verifyError.message.toLowerCase().includes("expired")
-            ? "This link was already used or has expired. Try signing in, or resend the confirmation email."
-            : verifyError.message
-        );
+      if (!tokenHash) {
+        setError("This confirmation link is missing its token.");
+        setStatus("error");
+        return;
+      }
+      if (!allowedOtpTypes.has(type)) {
+        setError("This confirmation link is not valid for signup.");
+        setStatus("error");
         return;
       }
 
-      await refreshProfile();
-      navigate("/lobby", { replace: true });
-    } finally {
-      setVerifying(false);
+      setError(null);
+      setStatus("checking");
+
+      try {
+        const { data, error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: type as EmailOtpType
+        });
+
+        if (verifyError) {
+          const { data: currentUser } = await supabase.auth.getUser();
+          if (currentUser.user?.email && isUsedOrExpiredLink(verifyError.message)) {
+            setVerifiedEmail(currentUser.user.email);
+            setStatus("verified");
+            await refreshProfile();
+            return;
+          }
+
+          setError(
+            isUsedOrExpiredLink(verifyError.message)
+              ? "This link was already used or has expired. Try signing in, or resend the confirmation email."
+              : verifyError.message
+          );
+          setStatus("error");
+          return;
+        }
+
+        const email = data.user?.email ?? data.session?.user.email;
+        if (email) {
+          setVerifiedEmail(email);
+        }
+        setStatus("verified");
+        await refreshProfile();
+      } catch (unknownError) {
+        setError(unknownError instanceof Error ? unknownError.message : "Could not verify account.");
+        setStatus("error");
+      }
     }
-  }
+
+    void verifyAccount();
+  }, [refreshProfile]);
 
   return (
     <main className="center-screen">
       <section className="panel narrow">
-        {error ? (
+        {status === "error" ? (
           <>
             <h1>Confirmation needs attention</h1>
             <p className="error">{error}</p>
@@ -73,22 +90,27 @@ export function ConfirmSignupPage() {
               Go to sign in
             </Link>
           </>
-        ) : tokenHash ? (
+        ) : status === "verified" ? (
           <>
-            <h1>Confirm your account</h1>
-            <p className="muted">Finish verifying your wisc.edu email.</p>
-            <button className="primary" type="button" onClick={confirmAccount} disabled={verifying}>
-              {verifying && <Loader2 className="spin" aria-hidden="true" />}
-              {verifying ? "Confirming" : "Confirm account"}
-            </button>
+            <CheckCircle2 className="status-icon success-icon" aria-hidden="true" />
+            <h1>Account verified</h1>
+            <p className="success">
+              You have already verified your account: {verifiedEmail ?? "your wisc.edu email"}.
+            </p>
           </>
         ) : (
           <>
             <Loader2 className="spin" aria-hidden="true" />
-            <h1>Preparing confirmation</h1>
+            <h1>Verifying account</h1>
+            <p className="muted">Checking your wisc.edu confirmation link.</p>
           </>
         )}
       </section>
     </main>
   );
+}
+
+function isUsedOrExpiredLink(message: string) {
+  const normalized = message.toLowerCase();
+  return normalized.includes("invalid") || normalized.includes("expired");
 }
