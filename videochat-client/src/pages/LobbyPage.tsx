@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, Search, ShieldCheck, X } from "lucide-react";
+import { Search, X } from "lucide-react";
+import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { useAuth } from "../context/AuthContext";
 import { useMatch } from "../context/MatchContext";
 
@@ -19,47 +20,49 @@ export function LobbyPage() {
   const waiting = queueState === "waiting";
 
   return (
-    <main className="app-shell">
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">BuckyChat</p>
-          <h1>Lobby</h1>
-        </div>
-        <div className="topbar-actions">
-          <Link className="icon-link" to="/admin" title="Admin reports">
-            <ShieldCheck aria-hidden="true" />
-          </Link>
-          <button className="icon-button" onClick={signOut} title="Sign out">
-            <LogOut aria-hidden="true" />
+    <main className="lobby-page">
+      <header className="landing-header page-header">
+        <Link className="landing-brand" to="/" aria-label="BuckyChat home">
+          <BuckyChatLogo markClassName="landing-mark" />
+        </Link>
+        <div className="landing-actions lobby-header-actions">
+          <button
+            className="lobby-header-button danger"
+            type="button"
+            onClick={signOut}
+          >
+            Log out
           </button>
         </div>
       </header>
 
-      <section className="lobby-band">
-        <div className="lobby-copy">
-          <h2>{waiting ? "Looking for someone" : "Ready when you are"}</h2>
-          <p>{profile?.email}</p>
-          <p className={`status ${connected ? "ok" : "warn"}`}>
-            {connected ? "Connected" : "Connecting"}
-          </p>
-          {profileError && <p className="error">{profileError}</p>}
-          {error && <p className="error">{error}</p>}
-        </div>
+      <div className="app-shell">
+        <section className="lobby-band">
+          <div className="lobby-copy">
+            <h1>{waiting ? "Looking for someone" : "Ready when you are"}</h1>
+            <p>{profile?.email}</p>
+            <p className={`status ${connected ? "ok" : "warn"}`}>
+              {connected ? "Connected" : "Connecting"}
+            </p>
+            {profileError && <p className="error">{profileError}</p>}
+            {error && <p className="error">{error}</p>}
+          </div>
 
-        <div className="match-control">
-          {waiting ? (
-            <button className="secondary large" onClick={leaveQueue}>
-              <X aria-hidden="true" />
-              Cancel
-            </button>
-          ) : (
-            <button className="primary large" onClick={joinQueue} disabled={!connected}>
-              <Search aria-hidden="true" />
-              Find match
-            </button>
-          )}
-        </div>
-      </section>
+          <div className="match-control">
+            {waiting ? (
+              <button className="secondary large" onClick={leaveQueue}>
+                <X aria-hidden="true" />
+                Cancel
+              </button>
+            ) : (
+              <button className="primary large" onClick={joinQueue} disabled={!connected}>
+                <Search aria-hidden="true" />
+                Find match
+              </button>
+            )}
+          </div>
+        </section>
+      </div>
     </main>
   );
 }
