@@ -9,10 +9,211 @@ type IceConfig = {
   iceServers: RTCIceServer[];
 };
 
+type CandidateSummary = {
+  type: string;
+  protocol: string;
+  address: string;
+  port: string;
+};
+
+type DebugState = {
+  stage: string;
+  media: "pending" | "ok" | "error";
+  iceServers: string[];
+  signalingState: string;
+  iceConnectionState: string;
+  iceGatheringState: string;
+  peerConnectionState: string;
+  method: string;
+  methodTone: "ok" | "warn" | "bad";
+  localCandidate: CandidateSummary | null;
+  remoteCandidate: CandidateSummary | null;
+  localTracks: string[];
+  remoteTracks: string[];
+  localCandidatesSent: number;
+  remoteCandidatesReceived: number;
+  offersSent: number;
+  answersSent: number;
+  offersReceived: number;
+  answersReceived: number;
+  pendingSignals: number;
+  pendingIceCandidates: number;
+  bytesReceived: number;
+  framesDecoded: number;
+  lastEvent: string;
+  updatedAt: string;
+};
+
+type StatsLike = {
+  id?: string;
+  type?: string;
+  selectedCandidatePairId?: string;
+  selected?: boolean;
+  nominated?: boolean;
+  state?: string;
+  localCandidateId?: string;
+  remoteCandidateId?: string;
+  kind?: string;
+  mediaType?: string;
+  bytesReceived?: number;
+  framesDecoded?: number;
+};
+
+const initialDebugState: DebugState = {
+  stage: "Waiting for match",
+  media: "pending",
+  iceServers: [],
+  signalingState: "none",
+  iceConnectionState: "none",
+  iceGatheringState: "none",
+  peerConnectionState: "none",
+  method: "Not connected",
+  methodTone: "warn",
+  localCandidate: null,
+  remoteCandidate: null,
+  localTracks: [],
+  remoteTracks: [],
+  localCandidatesSent: 0,
+  remoteCandidatesReceived: 0,
+  offersSent: 0,
+  answersSent: 0,
+  offersReceived: 0,
+  answersReceived: 0,
+  pendingSignals: 0,
+  pendingIceCandidates: 0,
+  bytesReceived: 0,
+  framesDecoded: 0,
+  lastEvent: "Idle",
+  updatedAt: "-"
+};
+
+function nowLabel() {
+  return new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+}
+
+function summarizeIceServers(iceServers: RTCIceServer[]) {
+  return iceServers.flatMap((server) => {
+    const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
+    return urls.map((url) => String(url));
+  });
+}
+
+function summarizeTracks(stream: MediaStream | null) {
+  if (!stream) {
+    return [];
+  }
+
+  return stream.getTracks().map((track) => {
+    const state = track.enabled ? "on" : "muted";
+    return `${track.kind}: ${track.readyState}/${state}`;
+  });
+}
+
+function candidateSummary(candidate: unknown): CandidateSummary | null {
+  const stat = candidate as {
+    candidateType?: string;
+    protocol?: string;
+    address?: string;
+    ip?: string;
+    port?: number;
+    relayProtocol?: string;
+  } | null;
+
+  if (!stat) {
+    return null;
+  }
+
+  return {
+    type: stat.candidateType ?? "unknown",
+    protocol: stat.relayProtocol ?? stat.protocol ?? "unknown",
+    address: stat.address ?? stat.ip ?? "hidden",
+    port: stat.port ? String(stat.port) : "-"
+  };
+}
+
+function inferConnectionMethod(local: CandidateSummary | null, remote: CandidateSummary | null) {
+  if (!local || !remote) {
+    return { method: "Checking candidates", methodTone: "warn" as const };
+  }
+
+  if (local.type === "relay" || remote.type === "relay") {
+    return { method: "TURN relay", methodTone: "ok" as const };
+  }
+
+  if (local.type === "srflx" || remote.type === "srflx" || local.type === "prflx" || remote.type === "prflx") {
+    return { method: "P2P via STUN", methodTone: "ok" as const };
+  }
+
+  if (local.type === "host" && remote.type === "host") {
+    return { method: "Direct P2P", methodTone: "ok" as const };
+  }
+
+  return { method: "P2P candidate pair", methodTone: "ok" as const };
+}
+
+async function collectConnectionStats(pc: RTCPeerConnection) {
+  const stats = await pc.getStats();
+  const reports: StatsLike[] = [];
+  stats.forEach((report) => reports.push(report as StatsLike));
+
+  const selectedCandidatePairId = reports.find(
+    (stat) => stat.type === "transport" && stat.selectedCandidatePairId
+  )?.selectedCandidatePairId;
+  const selectedPair =
+    (selectedCandidatePairId ? (stats.get(selectedCandidatePairId) as StatsLike | undefined) : undefined) ??
+    reports.find(
+      (stat) =>
+        stat.type === "candidate-pair" &&
+        (stat.selected || (stat.nominated && stat.state === "succeeded"))
+    ) ??
+    null;
+  const inboundVideo =
+    reports.find((stat) => stat.type === "inbound-rtp" && (stat.kind === "video" || stat.mediaType === "video")) ??
+    null;
+
+  const localCandidate = selectedPair?.localCandidateId
+    ? candidateSummary(stats.get(selectedPair.localCandidateId))
+    : null;
+  const remoteCandidate = selectedPair?.remoteCandidateId
+    ? candidateSummary(stats.get(selectedPair.remoteCandidateId))
+    : null;
+  const method = inferConnectionMethod(localCandidate, remoteCandidate);
+
+  return {
+    ...method,
+    localCandidate,
+    remoteCandidate,
+    bytesReceived: inboundVideo?.bytesReceived ?? selectedPair?.bytesReceived ?? 0,
+    framesDecoded: inboundVideo?.framesDecoded ?? selectedPair?.framesDecoded ?? 0
+  };
+}
+
+function formatCandidate(candidate: CandidateSummary | null) {
+  if (!candidate) {
+    return "waiting";
+  }
+
+  return `${candidate.type} / ${candidate.protocol} / ${candidate.address}:${candidate.port}`;
+}
+
+function formatBytes(value: number) {
+  if (value >= 1024 * 1024) {
+    return `${(value / 1024 / 1024).toFixed(1)} MB`;
+  }
+  if (value >= 1024) {
+    return `${(value / 1024).toFixed(1)} KB`;
+  }
+  return `${value} B`;
+}
+
 export function CallPage() {
   const navigate = useNavigate();
   const { roomID } = useParams();
-  const { activeMatch, messages, send, clearMatch, clearRoomMessages } = useMatch();
+  const { connectionState, activeMatch, messages, send, clearMatch, clearRoomMessages } = useMatch();
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -27,8 +228,17 @@ export function CallPage() {
   const [reportDetails, setReportDetails] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [debug, setDebug] = useState<DebugState>(initialDebugState);
 
   const match = activeMatch?.roomID === roomID ? activeMatch : null;
+
+  const updateDebug = useCallback((patch: Partial<DebugState>) => {
+    setDebug((current) => ({
+      ...current,
+      ...patch,
+      updatedAt: nowLabel()
+    }));
+  }, []);
 
   const flushPendingIceCandidates = useCallback(async (pc: RTCPeerConnection) => {
     if (!pc.remoteDescription) {
@@ -38,39 +248,76 @@ export function CallPage() {
     for (const candidate of pendingIceCandidatesRef.current.splice(0)) {
       await pc.addIceCandidate(candidate);
     }
-  }, []);
+    updateDebug({
+      pendingIceCandidates: pendingIceCandidatesRef.current.length,
+      lastEvent: "Flushed queued ICE candidates"
+    });
+  }, [updateDebug]);
 
   const processSignal = useCallback(
     async (msg: ServerMessage) => {
       const pc = pcRef.current;
       if (!pc) {
         pendingSignalsRef.current.push(msg);
+        updateDebug({
+          pendingSignals: pendingSignalsRef.current.length,
+          lastEvent: `Queued ${msg.type} before peer connection`
+        });
         return;
       }
 
       if (msg.type === "offer") {
+        setDebug((current) => ({
+          ...current,
+          offersReceived: current.offersReceived + 1,
+          lastEvent: "Received offer",
+          updatedAt: nowLabel()
+        }));
         await pc.setRemoteDescription(msg.payload as RTCSessionDescriptionInit);
         await flushPendingIceCandidates(pc);
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         send({ type: "answer", roomID, payload: pc.localDescription });
+        setDebug((current) => ({
+          ...current,
+          answersSent: current.answersSent + 1,
+          signalingState: pc.signalingState,
+          lastEvent: "Sent answer",
+          updatedAt: nowLabel()
+        }));
       }
 
       if (msg.type === "answer") {
+        setDebug((current) => ({
+          ...current,
+          answersReceived: current.answersReceived + 1,
+          lastEvent: "Received answer",
+          updatedAt: nowLabel()
+        }));
         await pc.setRemoteDescription(msg.payload as RTCSessionDescriptionInit);
         await flushPendingIceCandidates(pc);
       }
 
       if (msg.type === "ice-candidate" && msg.payload) {
         const candidate = msg.payload as RTCIceCandidateInit;
+        setDebug((current) => ({
+          ...current,
+          remoteCandidatesReceived: current.remoteCandidatesReceived + 1,
+          lastEvent: "Received ICE candidate",
+          updatedAt: nowLabel()
+        }));
         if (!pc.remoteDescription) {
           pendingIceCandidatesRef.current.push(candidate);
+          updateDebug({
+            pendingIceCandidates: pendingIceCandidatesRef.current.length,
+            lastEvent: "Queued ICE candidate until remote description"
+          });
           return;
         }
         await pc.addIceCandidate(candidate);
       }
     },
-    [flushPendingIceCandidates, roomID, send]
+    [flushPendingIceCandidates, roomID, send, updateDebug]
   );
 
   useEffect(() => {
@@ -83,6 +330,11 @@ export function CallPage() {
 
     async function startCall() {
       try {
+        updateDebug({
+          ...initialDebugState,
+          stage: "Requesting camera/mic and ICE config",
+          lastEvent: "Starting call setup"
+        });
         const [{ iceServers }, localStream] = await Promise.all([
           apiFetch<IceConfig>("/api/ice-config"),
           navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -96,9 +348,24 @@ export function CallPage() {
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = localStream;
         }
+        updateDebug({
+          stage: "Local media ready",
+          media: "ok",
+          iceServers: summarizeIceServers(iceServers),
+          localTracks: summarizeTracks(localStream),
+          lastEvent: "Camera/mic ready"
+        });
 
         const pc = new RTCPeerConnection({ iceServers });
         pcRef.current = pc;
+        updateDebug({
+          stage: "Peer connection created",
+          signalingState: pc.signalingState,
+          iceConnectionState: pc.iceConnectionState,
+          iceGatheringState: pc.iceGatheringState,
+          peerConnectionState: pc.connectionState,
+          lastEvent: "RTCPeerConnection created"
+        });
 
         localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
         pc.ontrack = (event) => {
@@ -106,13 +373,55 @@ export function CallPage() {
           if (remoteVideoRef.current && remoteStream) {
             remoteVideoRef.current.srcObject = remoteStream;
           }
+          updateDebug({
+            stage: "Remote track received",
+            remoteTracks: summarizeTracks(remoteStream ?? null),
+            lastEvent: "Remote media track arrived"
+          });
         };
         pc.onicecandidate = (event) => {
           if (event.candidate) {
             send({ type: "ice-candidate", roomID, payload: event.candidate.toJSON() });
+            setDebug((current) => ({
+              ...current,
+              localCandidatesSent: current.localCandidatesSent + 1,
+              lastEvent: "Sent ICE candidate",
+              updatedAt: nowLabel()
+            }));
+          } else {
+            updateDebug({
+              lastEvent: "ICE gathering complete",
+              iceGatheringState: pc.iceGatheringState
+            });
           }
         };
+        pc.onsignalingstatechange = () => {
+          updateDebug({
+            signalingState: pc.signalingState,
+            lastEvent: `Signaling ${pc.signalingState}`
+          });
+        };
+        pc.onicegatheringstatechange = () => {
+          updateDebug({
+            iceGatheringState: pc.iceGatheringState,
+            lastEvent: `ICE gathering ${pc.iceGatheringState}`
+          });
+        };
+        pc.oniceconnectionstatechange = () => {
+          const failed = pc.iceConnectionState === "failed" || pc.iceConnectionState === "disconnected";
+          updateDebug({
+            iceConnectionState: pc.iceConnectionState,
+            ...(failed ? { method: "ICE failed", methodTone: "bad" as const } : {}),
+            lastEvent: `ICE connection ${pc.iceConnectionState}`
+          });
+        };
         pc.onconnectionstatechange = () => {
+          const failed = pc.connectionState === "failed" || pc.connectionState === "disconnected";
+          updateDebug({
+            peerConnectionState: pc.connectionState,
+            ...(failed ? { method: "Peer connection failed", methodTone: "bad" as const } : {}),
+            lastEvent: `Peer connection ${pc.connectionState}`
+          });
           if (pc.connectionState === "failed" || pc.connectionState === "disconnected") {
             setError("Could not connect. Please try another match.");
           }
@@ -126,8 +435,23 @@ export function CallPage() {
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
           send({ type: "offer", roomID, payload: pc.localDescription });
+          setDebug((current) => ({
+            ...current,
+            offersSent: current.offersSent + 1,
+            signalingState: pc.signalingState,
+            stage: "Offer sent",
+            lastEvent: "Sent offer",
+            updatedAt: nowLabel()
+          }));
         }
       } catch (caught) {
+        updateDebug({
+          stage: "Call setup failed",
+          media: "error",
+          method: "Setup failed",
+          methodTone: "bad",
+          lastEvent: caught instanceof Error ? caught.message : "Could not start the call"
+        });
         setError(caught instanceof Error ? caught.message : "Could not start the call");
       }
     }
@@ -144,7 +468,58 @@ export function CallPage() {
       localStreamRef.current = null;
       clearRoomMessages(roomID);
     };
-  }, [clearRoomMessages, match, processSignal, roomID, send]);
+  }, [clearRoomMessages, match, processSignal, roomID, send, updateDebug]);
+
+  useEffect(() => {
+    if (!match) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      const pc = pcRef.current;
+      if (!pc) {
+        return;
+      }
+
+      collectConnectionStats(pc)
+        .then((stats) => {
+          const failed =
+            pc.connectionState === "failed" ||
+            pc.connectionState === "disconnected" ||
+            pc.iceConnectionState === "failed" ||
+            pc.iceConnectionState === "disconnected";
+          setDebug((current) => ({
+            ...current,
+            ...(failed
+              ? {
+                  localCandidate: stats.localCandidate,
+                  remoteCandidate: stats.remoteCandidate,
+                  bytesReceived: stats.bytesReceived,
+                  framesDecoded: stats.framesDecoded
+                }
+              : stats),
+            signalingState: pc.signalingState,
+            iceConnectionState: pc.iceConnectionState,
+            iceGatheringState: pc.iceGatheringState,
+            peerConnectionState: pc.connectionState,
+            localTracks: summarizeTracks(localStreamRef.current),
+            remoteTracks: summarizeTracks(remoteVideoRef.current?.srcObject as MediaStream | null),
+            pendingSignals: pendingSignalsRef.current.length,
+            pendingIceCandidates: pendingIceCandidatesRef.current.length,
+            updatedAt: nowLabel()
+          }));
+        })
+        .catch((caught) => {
+          setDebug((current) => ({
+            ...current,
+            lastEvent: caught instanceof Error ? caught.message : "Could not read WebRTC stats",
+            updatedAt: nowLabel()
+          }));
+        });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [match]);
 
   useEffect(() => {
     if (!roomID) {
@@ -182,6 +557,10 @@ export function CallPage() {
       track.enabled = next;
     });
     setMicEnabled(next);
+    updateDebug({
+      localTracks: summarizeTracks(localStreamRef.current),
+      lastEvent: next ? "Microphone unmuted" : "Microphone muted"
+    });
   }
 
   function toggleCamera() {
@@ -190,6 +569,10 @@ export function CallPage() {
       track.enabled = next;
     });
     setCameraEnabled(next);
+    updateDebug({
+      localTracks: summarizeTracks(localStreamRef.current),
+      lastEvent: next ? "Camera on" : "Camera off"
+    });
   }
 
   function endCall(type: "hangup" | "skip") {
@@ -216,12 +599,55 @@ export function CallPage() {
     setNotice("Report submitted.");
   }
 
+  const debugRows = [
+    ["Setup", `${debug.stage} (${debug.media})`],
+    ["Socket", connectionState],
+    ["Signaling", debug.signalingState],
+    ["Peer", debug.peerConnectionState],
+    ["ICE", `${debug.iceConnectionState} / gathering ${debug.iceGatheringState}`],
+    ["Local", formatCandidate(debug.localCandidate)],
+    ["Remote", formatCandidate(debug.remoteCandidate)],
+    ["Tracks", `local ${debug.localTracks.length || 0} / remote ${debug.remoteTracks.length || 0}`],
+    ["Data", `${formatBytes(debug.bytesReceived)} recv / ${debug.framesDecoded} frames`],
+    [
+      "Signals",
+      `offer ${debug.offersSent}/${debug.offersReceived}, answer ${debug.answersSent}/${debug.answersReceived}`
+    ],
+    ["Candidates", `sent ${debug.localCandidatesSent}, received ${debug.remoteCandidatesReceived}`],
+    ["Queued", `signals ${debug.pendingSignals}, ICE ${debug.pendingIceCandidates}`],
+    ["Updated", debug.updatedAt]
+  ];
+
   return (
     <main className="call-screen">
       <section className="video-stage">
         <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
         <video ref={localVideoRef} className="local-video" autoPlay playsInline muted />
       </section>
+
+      <aside className="call-debug" aria-label="WebRTC debug state">
+        <div className="call-debug-header">
+          <div>
+            <p>WebRTC debug</p>
+            <h2>{debug.method}</h2>
+          </div>
+          <span className={`call-debug-badge ${debug.methodTone}`}>{debug.methodTone}</span>
+        </div>
+        <dl className="call-debug-grid">
+          {debugRows.map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+        <div className="call-debug-foot">
+          <span>ICE servers</span>
+          <p>{debug.iceServers.length > 0 ? debug.iceServers.join(", ") : "none loaded"}</p>
+          <span>Last event</span>
+          <p>{debug.lastEvent}</p>
+        </div>
+      </aside>
 
       <footer className="call-controls">
         <button className="icon-button control" onClick={toggleMic} title={micEnabled ? "Mute" : "Unmute"}>

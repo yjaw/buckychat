@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { MailPlus, RefreshCcw } from "lucide-react";
+import { BookOpen, Eye, EyeOff, RadioTower } from "lucide-react";
 import { getAuthRedirectTo, supabase } from "../lib/supabase";
 
 const resendCooldownSeconds = 60;
@@ -47,6 +47,7 @@ function authErrorDetails(error: unknown) {
 export function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
@@ -172,63 +173,110 @@ export function RegisterPage() {
   }
 
   return (
-    <main className="center-screen">
-      <section className="panel auth-panel">
-        <div>
-          <p className="eyebrow">BuckyChat</p>
-          <h1>Create your campus account</h1>
-        </div>
-        <form onSubmit={onSubmit} className="form">
-          <label>
-            Email
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="student@wisc.edu"
-              autoComplete="email"
-              required
-            />
-          </label>
-          <label>
-            Password
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              autoComplete="new-password"
-              required
-            />
-          </label>
-          {error && <p className="error">{error}</p>}
-          {errorDetails && <pre className="code-block">{errorDetails}</pre>}
-          {message && <p className="success">{message}</p>}
-          <button
-            className={showingResendAction && !resendLocked ? "primary active" : "primary"}
-            type="submit"
-            disabled={loading || resending || emailOnCooldown}
-          >
-            {showingResendAction ? <RefreshCcw aria-hidden="true" /> : <MailPlus aria-hidden="true" />}
-            {loading
-              ? "Creating account"
-              : resending
-                ? "Sending confirmation"
-                : emailOnCooldown
-                  ? `Resend in ${resendCooldown}s`
-                  : showingResendAction
-                    ? "Resend confirmation"
-                    : "Create account"}
-          </button>
-          {confirmationEmail && resendLocked && (
-            <div className="cooldown" aria-label={`${resendCooldown} seconds before resend is available`}>
-              <span style={{ width: `${resendProgress}%` }} />
+    <main className="login-page">
+      <section className="login-panel" aria-labelledby="register-title">
+        <Link className="login-brand" to="/" aria-label="BuckyChat home">
+          <span className="login-brand-mark" aria-hidden="true">
+            <RadioTower />
+          </span>
+          <span>BuckyChat</span>
+        </Link>
+
+        <div className="login-shell">
+          <div className="login-heading">
+            <h1 id="register-title">Create your account</h1>
+            <p>Join your campus video lobby</p>
+          </div>
+
+          <form onSubmit={onSubmit} className="login-form">
+            <div className="login-field">
+              <label htmlFor="register-email">Email</label>
+              <input
+                id="register-email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="student@wisc.edu"
+                autoComplete="email"
+                required
+              />
             </div>
-          )}
-        </form>
-        <p className="muted">
-          Already registered? <Link to="/login">Sign in</Link>
-        </p>
+
+            <div className="login-field">
+              <label htmlFor="register-password">Password</label>
+              <span className="password-control">
+                <input
+                  id="register-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete="new-password"
+                  required
+                />
+                <button
+                  className="password-toggle"
+                  type="button"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                </button>
+              </span>
+            </div>
+
+            {error && <p className="error">{error}</p>}
+            {errorDetails && <pre className="code-block">{errorDetails}</pre>}
+            {message && <p className="success">{message}</p>}
+
+            <button className="login-submit" type="submit" disabled={loading || resending || emailOnCooldown}>
+              {loading
+                ? "Creating account"
+                : resending
+                  ? "Sending confirmation"
+                  : emailOnCooldown
+                    ? `Resend in ${resendCooldown}s`
+                    : showingResendAction
+                      ? "Resend confirmation"
+                      : "Create account"}
+            </button>
+
+            {confirmationEmail && resendLocked && (
+              <div className="cooldown" aria-label={`${resendCooldown} seconds before resend is available`}>
+                <span style={{ width: `${resendProgress}%` }} />
+              </div>
+            )}
+          </form>
+
+          <p className="login-switch">
+            Already have an account? <Link to="/login">Sign in</Link>
+          </p>
+
+          <p className="login-terms">
+            By continuing, you agree to BuckyChat&apos;s{" "}
+            <Link to="/terms">Terms of Service</Link> and{" "}
+            <Link to="/privacy">Privacy Policy</Link>.
+          </p>
+        </div>
       </section>
+
+      <aside className="login-story" aria-label="BuckyChat story">
+        <Link className="login-doc-link" to="/">
+          <BookOpen aria-hidden="true" />
+          Home
+        </Link>
+        <figure>
+          <blockquote>
+            A verified campus account keeps BuckyChat focused on real UW-Madison
+            conversations.
+          </blockquote>
+          <figcaption>
+            <span className="login-avatar" aria-hidden="true">
+              BC
+            </span>
+            <span>@buckychat</span>
+          </figcaption>
+        </figure>
+      </aside>
     </main>
   );
 }

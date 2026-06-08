@@ -4,6 +4,8 @@ import { AdminPage } from "./pages/AdminPage";
 import { AuthCallbackPage } from "./pages/AuthCallbackPage";
 import { CallPage } from "./pages/CallPage";
 import { ConfirmSignupPage } from "./pages/ConfirmSignupPage";
+import { LandingPage } from "./pages/LandingPage";
+import { PrivacyPage, TermsPage } from "./pages/LegalPages";
 import { LobbyPage } from "./pages/LobbyPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
@@ -11,41 +13,52 @@ import { SetupPage } from "./pages/SetupPage";
 import { supabaseConfigured } from "./lib/supabase";
 
 export function App() {
-  if (!supabaseConfigured) {
-    return <SetupPage />;
-  }
-
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/lobby" replace />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/auth/callback" element={<AuthCallbackPage />} />
-      <Route path="/confirm-signup" element={<ConfirmSignupPage />} />
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/login" element={supabaseConfigured ? <LoginPage /> : <SetupPage />} />
+      <Route path="/register" element={supabaseConfigured ? <RegisterPage /> : <SetupPage />} />
+      <Route
+        path="/auth/callback"
+        element={supabaseConfigured ? <AuthCallbackPage /> : <SetupPage />}
+      />
+      <Route
+        path="/confirm-signup"
+        element={supabaseConfigured ? <ConfirmSignupPage /> : <SetupPage />}
+      />
       <Route
         path="/lobby"
-        element={
+        element={supabaseConfigured ? (
           <ProtectedRoute>
             <LobbyPage />
           </ProtectedRoute>
-        }
+        ) : (
+          <SetupPage />
+        )}
       />
       <Route
         path="/call/:roomID"
-        element={
+        element={supabaseConfigured ? (
           <ProtectedRoute>
             <CallPage />
           </ProtectedRoute>
-        }
+        ) : (
+          <SetupPage />
+        )}
       />
       <Route
         path="/admin"
-        element={
+        element={supabaseConfigured ? (
           <ProtectedRoute>
             <AdminPage />
           </ProtectedRoute>
-        }
+        ) : (
+          <SetupPage />
+        )}
       />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
