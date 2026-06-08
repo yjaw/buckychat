@@ -18,8 +18,16 @@ function authErrorMessage(message: string) {
   if (message.toLowerCase().includes("error sending confirmation email")) {
     return "Supabase could not send the confirmation email. Check custom SMTP, sender verification, and Auth logs.";
   }
+  if (isAlreadyRegisteredMessage(message)) {
+    return "An account already exists for this email. Sign in instead.";
+  }
 
   return message;
+}
+
+function isAlreadyRegisteredMessage(message: string) {
+  const normalized = message.toLowerCase();
+  return normalized.includes("already registered") || normalized.includes("already exists");
 }
 
 function authErrorDetails(error: unknown) {
@@ -42,6 +50,10 @@ function authErrorDetails(error: unknown) {
     null,
     2
   );
+}
+
+function isExistingAccountResponse(data: Awaited<ReturnType<typeof supabase.auth.signUp>>["data"]) {
+  return !data.session && Array.isArray(data.user?.identities) && data.user.identities.length === 0;
 }
 
 export function RegisterPage() {
@@ -117,6 +129,11 @@ export function RegisterPage() {
       if (authError) {
         setError(authErrorMessage(authError.message));
         setErrorDetails(authErrorDetails(authError));
+        return;
+      }
+
+      if (isExistingAccountResponse(data)) {
+        setError("An account already exists for this email. Sign in instead.");
         return;
       }
 
