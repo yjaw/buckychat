@@ -3,17 +3,9 @@ import { Link } from "react-router-dom";
 import { BookOpen, Eye, EyeOff } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { getAuthRedirectTo, supabase } from "../lib/supabase";
+import { hasWiscDomain, normalizeEmail } from "../lib/email";
 
 const resendCooldownSeconds = 60;
-
-function hasWiscDomain(email: string) {
-  const parts = email.trim().toLowerCase().split("@");
-  return parts.length === 2 && parts[1] === "wisc.edu";
-}
-
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
-}
 
 function authErrorMessage(message: string) {
   if (message.toLowerCase().includes("error sending confirmation email")) {

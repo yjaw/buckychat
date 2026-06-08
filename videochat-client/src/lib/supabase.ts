@@ -32,3 +32,7 @@ export function getAuthRedirectTo() {
 
   return `${window.location.origin}/auth/callback`;
 }
+
+export function getPasswordResetRedirectTo() {
+  return `${window.location.origin}/reset-password`;
+}

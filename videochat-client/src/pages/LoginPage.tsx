@@ -35,7 +35,10 @@ export function LoginPage() {
   }
 
   function onForgotPassword() {
-    setError("Password reset is not configured for BuckyChat yet.");
+    const target = email.trim()
+      ? `/forgot-password?email=${encodeURIComponent(email.trim())}`
+      : "/forgot-password";
+    navigate(target);
   }
 
   return (

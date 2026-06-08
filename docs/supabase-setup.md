@@ -10,8 +10,8 @@
 6. In Authentication > Hooks, enable the Before User Created hook and point it at:
    `public.madfriends_before_user_created`.
 7. In Authentication > URL Configuration, set Site URL to your frontend origin and add the auth URLs to Redirect URLs. If Vite starts on a different port, use that actual port everywhere:
-   - Local: `http://localhost:5173`, `http://localhost:5173/auth/callback`, and `http://localhost:5173/confirm-signup`
-   - Production: `https://buckychat.com`, `https://buckychat.com/auth/callback`, and `https://buckychat.com/confirm-signup`
+   - Local: `http://localhost:5173`, `http://localhost:5173/auth/callback`, `http://localhost:5173/confirm-signup`, and `http://localhost:5173/reset-password`
+   - Production: `https://buckychat.com`, `https://buckychat.com/auth/callback`, `https://buckychat.com/confirm-signup`, and `https://buckychat.com/reset-password`
 8. Optional: set `VITE_AUTH_REDIRECT_URL` to the same callback URL. If it is not set, the app uses the current browser origin plus `/auth/callback`.
 9. In Authentication > Email Templates > Confirm signup, use the template in `docs/supabase-confirm-signup-template.html`:
 
@@ -31,6 +31,8 @@
 The hook rejects every email domain except exact `wisc.edu`. For example, `student@wisc.edu` is allowed and `student@sub.wisc.edu` is rejected.
 
 Use `{{ .TokenHash }}` instead of direct `{{ .ConfirmationURL }}` links. The `/confirm-signup` page verifies the token as soon as the user opens the email link, then shows the verified `wisc.edu` account email.
+
+Password recovery uses Supabase's reset email with the app-provided `/reset-password` redirect URL. That route reads the recovery session from the link, lets the user set a new password, and then signs out the local recovery session so they can sign in normally.
 
 If signups succeed in the UI but no email arrives, check Authentication > Logs in Supabase. Also confirm the Email provider is enabled, email confirmation is enabled, and SMTP/rate limits are not blocking delivery.
 
