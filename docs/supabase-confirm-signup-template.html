@@ -14,7 +14,7 @@
               <p style="margin:0 0 24px;color:#4b5563;font-size:16px;line-height:1.5;">
                 Verify your wisc.edu email.
               </p>
-              <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 20px;border-radius:8px;background:#0f766e;color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;">
+              <a href="{{ .SiteURL }}/confirm-signup?token_hash={{ .TokenHash }}&type=email" style="display:inline-block;padding:14px 20px;border-radius:8px;background:#c5050c;color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;">
                 Confirm account
               </a>
             </td>

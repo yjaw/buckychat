@@ -20,8 +20,8 @@
 <p>Verify your wisc.edu email.</p>
 <p>
   <a
-    href="{{ .ConfirmationURL }}"
-    style="display:inline-block;padding:14px 20px;border-radius:8px;background:#0f766e;color:#ffffff;font-weight:800;text-decoration:none;"
+    href="{{ .SiteURL }}/confirm-signup?token_hash={{ .TokenHash }}&type=email"
+    style="display:inline-block;padding:14px 20px;border-radius:8px;background:#c5050c;color:#ffffff;font-weight:800;text-decoration:none;"
   >
     Confirm account
   </a>
@@ -30,7 +30,7 @@
 
 The hook rejects every email domain except exact `wisc.edu`. For example, `student@wisc.edu` is allowed and `student@sub.wisc.edu` is rejected.
 
-The app still supports old `/confirm-signup?token_hash=...` links for compatibility, but new emails should use `{{ .ConfirmationURL }}`.
+Use `{{ .TokenHash }}` instead of direct `{{ .ConfirmationURL }}` links. Some email security tools prefetch direct confirmation links, which can consume the one-time token before the user clicks and make Supabase show an invalid or expired link even though the account was confirmed. The `/confirm-signup` page verifies the token only after the user clicks its confirmation button.
 
 If signups succeed in the UI but no email arrives, check Authentication > Logs in Supabase. Also confirm the Email provider is enabled, email confirmation is enabled, and SMTP/rate limits are not blocking delivery.
 
