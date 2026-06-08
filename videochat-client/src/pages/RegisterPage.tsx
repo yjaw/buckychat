@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { CooldownSubmitButton } from "../components/CooldownSubmitButton";
 import { getAuthRedirectTo, supabase } from "../lib/supabase";
@@ -175,12 +175,14 @@ export function RegisterPage() {
   }
 
   return (
-    <main className="login-page">
-      <section className="login-panel" aria-labelledby="register-title">
-        <Link className="login-brand" to="/" aria-label="BuckyChat home">
-          <BuckyChatLogo markClassName="login-brand-mark" />
+    <main className="login-page with-page-header">
+      <header className="landing-header page-header">
+        <Link className="landing-brand" to="/" aria-label="BuckyChat home">
+          <BuckyChatLogo markClassName="landing-mark" />
         </Link>
+      </header>
 
+      <section className="login-panel" aria-labelledby="register-title">
         <div className="login-shell">
           <div className="login-heading">
             <h1 id="register-title">Create your account</h1>
@@ -238,10 +240,6 @@ export function RegisterPage() {
             </CooldownSubmitButton>
           </form>
 
-          <p className="login-switch">
-            Already have an account? <Link to="/login">Sign in</Link>
-          </p>
-
           <p className="login-terms">
             By continuing, you agree to BuckyChat&apos;s{" "}
             <Link to="/terms">Terms of Service</Link> and{" "}
@@ -251,10 +249,6 @@ export function RegisterPage() {
       </section>
 
       <aside className="login-story" aria-label="BuckyChat story">
-        <Link className="login-doc-link" to="/">
-          <BookOpen aria-hidden="true" />
-          Home
-        </Link>
         <figure>
           <blockquote>
             A verified campus account keeps BuckyChat focused on real UW-Madison

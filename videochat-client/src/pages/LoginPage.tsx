@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { BookOpen, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
@@ -42,12 +42,14 @@ export function LoginPage() {
   }
 
   return (
-    <main className="login-page">
-      <section className="login-panel" aria-labelledby="login-title">
-        <Link className="login-brand" to="/" aria-label="BuckyChat home">
-          <BuckyChatLogo markClassName="login-brand-mark" />
+    <main className="login-page with-page-header">
+      <header className="landing-header page-header">
+        <Link className="landing-brand" to="/" aria-label="BuckyChat home">
+          <BuckyChatLogo markClassName="landing-mark" />
         </Link>
+      </header>
 
+      <section className="login-panel" aria-labelledby="login-title">
         <div className="login-shell">
           <div className="login-heading">
             <h1 id="login-title">Welcome back</h1>
@@ -115,10 +117,6 @@ export function LoginPage() {
       </section>
 
       <aside className="login-story" aria-label="BuckyChat story">
-        <Link className="login-doc-link" to="/">
-          <BookOpen aria-hidden="true" />
-          Home
-        </Link>
         <figure>
           <blockquote>
             BuckyChat makes it easy to turn a quiet moment on campus into a real
