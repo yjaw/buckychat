@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { BookOpen, Eye, EyeOff, RadioTower } from "lucide-react";
+import { BookOpen, Eye, EyeOff } from "lucide-react";
+import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 
@@ -41,10 +42,7 @@ export function LoginPage() {
     <main className="login-page">
       <section className="login-panel" aria-labelledby="login-title">
         <Link className="login-brand" to="/" aria-label="BuckyChat home">
-          <span className="login-brand-mark" aria-hidden="true">
-            <RadioTower />
-          </span>
-          <span>BuckyChat</span>
+          <BuckyChatLogo markClassName="login-brand-mark" />
         </Link>
 
         <div className="login-shell">

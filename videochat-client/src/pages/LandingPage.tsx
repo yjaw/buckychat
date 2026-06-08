@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, PlayCircle, RadioTower } from "lucide-react";
+import { ArrowRight, PlayCircle } from "lucide-react";
+import { BuckyChatLogo } from "../components/BuckyChatLogo";
 
 const audienceLabels = ["Clubs", "Classes", "Events", "Study groups", "Open mic"];
 
@@ -8,10 +9,7 @@ export function LandingPage() {
     <main className="landing-page">
       <header className="landing-header">
         <Link className="landing-brand" to="/" aria-label="BuckyChat home">
-          <span className="landing-mark" aria-hidden="true">
-            <RadioTower />
-          </span>
-          <span>BuckyChat</span>
+          <BuckyChatLogo markClassName="landing-mark" />
         </Link>
 
         <div className="landing-actions">

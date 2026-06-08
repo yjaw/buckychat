@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Eye, EyeOff, RadioTower } from "lucide-react";
+import { BookOpen, Eye, EyeOff } from "lucide-react";
+import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { getAuthRedirectTo, supabase } from "../lib/supabase";
 
 const resendCooldownSeconds = 60;
@@ -193,10 +194,7 @@ export function RegisterPage() {
     <main className="login-page">
       <section className="login-panel" aria-labelledby="register-title">
         <Link className="login-brand" to="/" aria-label="BuckyChat home">
-          <span className="login-brand-mark" aria-hidden="true">
-            <RadioTower />
-          </span>
-          <span>BuckyChat</span>
+          <BuckyChatLogo markClassName="login-brand-mark" />
         </Link>
 
         <div className="login-shell">

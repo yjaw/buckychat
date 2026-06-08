@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { RadioTower } from "lucide-react";
+import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import type { ReactNode } from "react";
 
 const effectiveDate = "June 8, 2026";
@@ -17,10 +17,7 @@ function LegalShell({
     <main className="legal-page">
       <header className="legal-header">
         <Link className="login-brand" to="/" aria-label="BuckyChat home">
-          <span className="login-brand-mark" aria-hidden="true">
-            <RadioTower />
-          </span>
-          <span>BuckyChat</span>
+          <BuckyChatLogo markClassName="login-brand-mark" />
         </Link>
         <nav className="legal-nav" aria-label="Legal navigation">
           <Link to="/terms">Terms</Link>

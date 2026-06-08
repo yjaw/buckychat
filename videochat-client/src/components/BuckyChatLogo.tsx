@@ -1,0 +1,44 @@
+type BuckyChatLogoProps = {
+  markClassName?: string;
+  wordmarkClassName?: string;
+};
+
+type BuckyChatMarkProps = {
+  className?: string;
+};
+
+export function BuckyChatMark({ className = "brand-mark-svg" }: BuckyChatMarkProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 48 48"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect x="1.5" y="1.5" width="45" height="45" rx="11" fill="#ffffff" />
+      <rect x="3" y="3" width="42" height="42" rx="9.5" fill="#c5050c" />
+      <path
+        d="M13.8 13.5h17.4c4.2 0 7.5 3.1 7.5 7v4.8c0 3.9-3.3 7-7.5 7h-8.7l-7.4 5.1c-.9.6-2.1-.2-1.8-1.3l1-4.1c-3.4-.6-5.9-3.4-5.9-6.7v-4.8c0-3.9 3.3-7 7.4-7Z"
+        fill="#ffffff"
+      />
+      <path
+        d="M17.2 16.8h3.3l1.7 6.5 2.3-6.5H27l2.3 6.5 1.7-6.5h3.3L30.6 28h-2.8l-2.1-6-2.1 6h-2.8l-3.6-11.2Z"
+        fill="#c5050c"
+        transform="translate(0 2)"
+      />
+    </svg>
+  );
+}
+
+export function BuckyChatLogo({ markClassName = "brand-mark", wordmarkClassName }: BuckyChatLogoProps) {
+  return (
+    <>
+      <span className={markClassName} aria-hidden="true">
+        <BuckyChatMark />
+      </span>
+      <span className={wordmarkClassName}>BuckyChat</span>
+    </>
+  );
+}
