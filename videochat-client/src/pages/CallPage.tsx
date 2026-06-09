@@ -805,21 +805,14 @@ export function CallPage() {
     <main className="call-screen" onMouseMove={showControls} onTouchStart={showControls}>
       <section className={`video-stage${splitView ? " video-stage--split" : ""}`}>
         <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
-        <div
-          className={`local-video-wrap${splitView ? " local-video-wrap--split" : ""}`}
+        <video
+          ref={localVideoRef}
+          className={`local-video${splitView ? " local-video--split" : ""}`}
+          autoPlay
+          playsInline
+          muted
           onClick={() => setSplitView((v) => !v)}
-        >
-          <video
-            ref={localVideoRef}
-            className={`local-video${splitView ? " local-video--split" : ""}`}
-            autoPlay
-            playsInline
-            muted
-          />
-          <span className="local-video-hint">
-            {splitView ? "Exit split" : "Split screen"}
-          </span>
-        </div>
+        />
       </section>
 
       <aside className="call-debug" aria-label="WebRTC debug state">
