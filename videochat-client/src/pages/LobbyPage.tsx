@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, X } from "lucide-react";
+import { Search, X, MonitorSmartphone } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { CameraPermissionBanner } from "../components/CameraPermissionBanner";
 import { useAuth } from "../context/AuthContext";
@@ -20,6 +20,7 @@ export function LobbyPage() {
 
   const connected = connectionState === "connected";
   const waiting = queueState === "waiting";
+  const duplicateSession = error === "duplicate_session";
   const { state: cameraPermission } = useCameraPermission();
   const cameraBlocked = cameraPermission === "denied";
 
@@ -47,7 +48,19 @@ export function LobbyPage() {
       </header>
 
       <div className="app-shell">
-        <section className="lobby-band">
+        {duplicateSession && (
+          <div className="center-screen">
+            <section className="panel narrow" style={{ textAlign: "center" }}>
+              <MonitorSmartphone size={40} aria-hidden="true" style={{ margin: "0 auto 12px", color: "#b45309" }} />
+              <h1>Signed in elsewhere</h1>
+              <p>Your account was opened on another device or tab. Only one session is allowed at a time.</p>
+              <button className="primary large" style={{ marginTop: "16px" }} onClick={signOut}>
+                Sign out
+              </button>
+            </section>
+          </div>
+        )}
+        {!duplicateSession && <section className="lobby-band">
           <div className="lobby-copy">
             <h1>{waiting ? "Looking for someone" : "Ready when you are"}</h1>
             <p>{profile?.email}</p>
@@ -55,7 +68,7 @@ export function LobbyPage() {
               {connected ? "Connected" : "Connecting"}
             </p>
             {profileError && <p className="error">{profileError}</p>}
-            {error && <p className="error">{error}</p>}
+            {error && !duplicateSession && <p className="error">{error}</p>}
           </div>
 
           <div className="match-control">
@@ -71,7 +84,7 @@ export function LobbyPage() {
               </button>
             )}
           </div>
-        </section>
+        </section>}
       </div>
 
       <footer className="landing-legal">

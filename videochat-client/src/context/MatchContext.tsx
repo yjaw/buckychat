@@ -104,6 +104,11 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         setActiveMatch(null);
         setQueueState("idle");
       }
+      if (msg.type === "duplicate_session") {
+        setActiveMatch(null);
+        setQueueState("idle");
+        setError("duplicate_session");
+      }
       if (msg.type === "error") {
         setError(msg.message ?? "WebSocket error");
       }

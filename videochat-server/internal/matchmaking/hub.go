@@ -346,6 +346,7 @@ func (h *Hub) closeUserConnectionsLocked(userID string) {
 		h.removeWaitingLocked(client.ID)
 		h.endRoomLocked(client.ID, "partner_left")
 		delete(h.clients, client.ID)
+		client.sendMessage(Outgoing{Type: "duplicate_session", Message: "You signed in from another device."})
 		client.close()
 	}
 }
