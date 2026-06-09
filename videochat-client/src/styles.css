@@ -1215,6 +1215,15 @@ button svg,
   background: #05070d;
 }
 
+.dvd-stage {
+  --dvd-logo-width: 156px;
+  --dvd-logo-height: 88px;
+  position: relative;
+  overflow: hidden;
+  background: #05070d;
+}
+
+/* legacy alias kept for safety */
 .waiting-room-stage {
   --dvd-logo-width: 156px;
   --dvd-logo-height: 88px;
@@ -1223,6 +1232,21 @@ button svg,
   position: relative;
   overflow: hidden;
   background: #05070d;
+}
+
+.dvd-waiting-label {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  color: rgb(255 255 255 / 0.45);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  z-index: 5;
+  pointer-events: none;
 }
 
 .dvd-screensaver {

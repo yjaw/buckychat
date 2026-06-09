@@ -699,32 +699,7 @@ export function CallPage() {
     }
   }, [clearMatch, joinQueue, messages, navigate, processSignal, roomID]);
 
-  if (waitingForMatch) {
-    function leaveWaitingRoom() {
-      leaveQueue();
-      navigate("/lobby", { replace: true });
-    }
-
-    return (
-      <main className="call-screen waiting-call-screen" onMouseMove={showControls} onTouchStart={showControls}>
-        <section className="waiting-room-stage" aria-label="Waiting for a match">
-          <DvdScreensaver />
-          <div className="waiting-room-overlay" aria-live="polite">
-            <p>{queueState === "waiting" ? "Finding your match" : "Entering the room"}</p>
-            <h1>Enjoy the DVD logo while BuckyChat looks around.</h1>
-          </div>
-        </section>
-
-        <CallControls onLeave={leaveWaitingRoom} hidden={!controlsVisible} />
-      </main>
-    );
-  }
-
-  if (!match && roomID !== WAITING_ROOM_ID && queueState === "waiting") {
-    return <Navigate to="/call/waiting" replace />;
-  }
-
-  if (!match || !roomID) {
+  if (!waitingForMatch && (!match || !roomID)) {
     return <Navigate to="/lobby" replace />;
   }
 
@@ -760,8 +735,12 @@ export function CallPage() {
   }
 
   function leaveCall() {
-    send({ type: "hangup", roomID });
-    clearMatch();
+    if (waitingForMatch) {
+      leaveQueue();
+    } else {
+      send({ type: "hangup", roomID });
+      clearMatch();
+    }
     navigate("/lobby", { replace: true });
   }
 
@@ -804,19 +783,28 @@ export function CallPage() {
 
   return (
     <main className="call-screen" onMouseMove={showControls} onTouchStart={showControls}>
-      <section className={`video-stage${splitView ? " video-stage--split" : ""}`}>
-        <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
+      <section className={`video-stage${splitView && !waitingForMatch ? " video-stage--split" : ""}`}>
+        {waitingForMatch ? (
+          <div className="remote-video dvd-stage" aria-label="Waiting for a match">
+            <DvdScreensaver />
+            <p className="dvd-waiting-label" aria-live="polite">
+              {queueState === "waiting" ? "Finding your match…" : "Connecting…"}
+            </p>
+          </div>
+        ) : (
+          <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
+        )}
         <video
           ref={localVideoRef}
-          className={`local-video${splitView ? " local-video--split" : ""}`}
+          className={`local-video${splitView && !waitingForMatch ? " local-video--split" : ""}`}
           autoPlay
           playsInline
           muted
-          onClick={() => setSplitView((v) => !v)}
+          onClick={() => { if (!waitingForMatch) setSplitView((v) => !v); }}
         />
       </section>
 
-      <aside className={`call-debug${debugVisible ? "" : " call-debug--collapsed"}`} aria-label="WebRTC debug state">
+      {!waitingForMatch && <aside className={`call-debug${debugVisible ? "" : " call-debug--collapsed"}`} aria-label="WebRTC debug state">
         <div className="call-debug-header">
           <div>
             <p>WebRTC debug</p>
@@ -849,16 +837,16 @@ export function CallPage() {
             </div>
           </>
         )}
-      </aside>
+      </aside>}
 
       <CallControls
         hidden={!controlsVisible}
         micEnabled={micEnabled}
         cameraEnabled={cameraEnabled}
-        onToggleMic={toggleMic}
-        onToggleCamera={toggleCamera}
-        onReport={() => setReportOpen(true)}
-        onSkip={skipCall}
+        onToggleMic={waitingForMatch ? undefined : toggleMic}
+        onToggleCamera={waitingForMatch ? undefined : toggleCamera}
+        onReport={waitingForMatch ? undefined : () => setReportOpen(true)}
+        onSkip={waitingForMatch ? undefined : skipCall}
         onLeave={leaveCall}
       />
 
