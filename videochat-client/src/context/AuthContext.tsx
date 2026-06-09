@@ -92,7 +92,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
       if (nextSession) {
-        refreshProfile();
+        setLoading(true);
+        refreshProfile().finally(() => setLoading(false));
       } else {
         setProfile(null);
         setProfileError(null);
