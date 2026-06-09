@@ -687,6 +687,92 @@ a {
   flex: 1;
 }
 
+/* ── Camera permission banner ───────────────────────────────── */
+.cam-banner {
+  background: #fff8ed;
+  border-bottom: 1.5px solid #f59e0b;
+  padding: 10px 24px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.cam-banner-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cam-banner-icon {
+  flex-shrink: 0;
+  color: #d97706;
+  width: 18px;
+  height: 18px;
+}
+
+.cam-banner-msg {
+  flex: 1;
+  color: #92400e;
+}
+
+.cam-banner-request {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #f59e0b;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cam-banner-request:hover { background: #d97706; }
+.cam-banner-request:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.cam-banner-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1.5px solid #f59e0b;
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: #b45309;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cam-banner-toggle:hover {
+  background: #fef3c7;
+}
+
+.cam-banner-dismiss {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.cam-banner-dismiss:hover {
+  color: #374151;
+}
+
+.cam-banner-steps {
+  margin: 10px 0 2px 28px;
+  padding: 0;
+  display: grid;
+  gap: 5px;
+  color: #78350f;
+}
+
 .panel {
   width: min(100%, 440px);
   border: 1px solid #d7dde8;

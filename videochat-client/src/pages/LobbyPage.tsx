@@ -2,8 +2,10 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
+import { CameraPermissionBanner } from "../components/CameraPermissionBanner";
 import { useAuth } from "../context/AuthContext";
 import { useMatch } from "../context/MatchContext";
+import { useCameraPermission } from "../hooks/useCameraPermission";
 
 export function LobbyPage() {
   const navigate = useNavigate();
@@ -18,6 +20,8 @@ export function LobbyPage() {
 
   const connected = connectionState === "connected";
   const waiting = queueState === "waiting";
+  const { state: cameraPermission } = useCameraPermission();
+  const cameraBlocked = cameraPermission === "denied";
 
   function startMatchSearch() {
     joinQueue();
@@ -26,6 +30,7 @@ export function LobbyPage() {
 
   return (
     <main className="lobby-page">
+      {cameraBlocked && <CameraPermissionBanner />}
       <header className="landing-header page-header">
         <Link className="landing-brand" to="/lobby" aria-label="BuckyChat home">
           <BuckyChatLogo markClassName="landing-mark" />
@@ -60,7 +65,7 @@ export function LobbyPage() {
                 Cancel
               </button>
             ) : (
-              <button className="primary large" onClick={startMatchSearch} disabled={!connected}>
+              <button className="primary large" onClick={startMatchSearch} disabled={!connected || cameraBlocked}>
                 <Search aria-hidden="true" />
                 Find match
               </button>
