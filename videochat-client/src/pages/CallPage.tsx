@@ -349,7 +349,7 @@ export function CallPage() {
   function showControls() {
     setControlsVisible(true);
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-    hideTimerRef.current = setTimeout(() => setControlsVisible(false), 3000);
+    hideTimerRef.current = setTimeout(() => setControlsVisible(false), 2000);
   }
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("Inappropriate behavior");

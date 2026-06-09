@@ -1527,6 +1527,12 @@ button svg,
   opacity: 1;
 }
 
+@media (hover: none) {
+  .ctrl-wrap::after {
+    display: none;
+  }
+}
+
 .toast {
   position: absolute;
   left: 50%;
