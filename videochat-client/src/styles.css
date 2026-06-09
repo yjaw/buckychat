@@ -1383,12 +1383,38 @@ button svg,
   padding: 14px;
 }
 
+.call-debug--collapsed {
+  padding-bottom: 4px;
+}
+
+.call-debug-toggle {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #cbd5e1;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: center;
+  transition: background 0.15s;
+}
+
+.call-debug-toggle:hover {
+  background: rgba(255,255,255,0.1);
+}
+
 .call-debug-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
+  gap: 10px;
   margin-bottom: 12px;
+}
+
+.call-debug--collapsed .call-debug-header {
+  margin-bottom: 0;
 }
 
 .call-debug-header p {

@@ -364,6 +364,7 @@ export function CallPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [debug, setDebug] = useState<DebugState>(initialDebugState);
+  const [debugVisible, setDebugVisible] = useState(true);
 
   const match = activeMatch?.roomID === roomID ? activeMatch : null;
   const waitingForMatch = roomID === WAITING_ROOM_ID && !match;
@@ -815,28 +816,39 @@ export function CallPage() {
         />
       </section>
 
-      <aside className="call-debug" aria-label="WebRTC debug state">
+      <aside className={`call-debug${debugVisible ? "" : " call-debug--collapsed"}`} aria-label="WebRTC debug state">
         <div className="call-debug-header">
           <div>
             <p>WebRTC debug</p>
-            <h2>{debug.method}</h2>
+            {debugVisible && <h2>{debug.method}</h2>}
           </div>
           <span className={`call-debug-badge ${debug.methodTone}`}>{debug.methodTone}</span>
+          <button
+            className="call-debug-toggle"
+            onClick={() => setDebugVisible((v) => !v)}
+            aria-label={debugVisible ? "Hide debug info" : "Show debug info"}
+          >
+            {debugVisible ? "Hide" : "Show"}
+          </button>
         </div>
-        <dl className="call-debug-grid">
-          {debugRows.map(([label, value]) => (
-            <div key={label}>
-              <dt>{label}</dt>
-              <dd>{value}</dd>
+        {debugVisible && (
+          <>
+            <dl className="call-debug-grid">
+              {debugRows.map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+            </dl>
+            <div className="call-debug-foot">
+              <span>ICE servers</span>
+              <p>{debug.iceServers.length > 0 ? debug.iceServers.join(", ") : "none loaded"}</p>
+              <span>Last event</span>
+              <p>{debug.lastEvent}</p>
             </div>
-          ))}
-        </dl>
-        <div className="call-debug-foot">
-          <span>ICE servers</span>
-          <p>{debug.iceServers.length > 0 ? debug.iceServers.join(", ") : "none loaded"}</p>
-          <span>Last event</span>
-          <p>{debug.lastEvent}</p>
-        </div>
+          </>
+        )}
       </aside>
 
       <CallControls
