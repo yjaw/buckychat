@@ -345,8 +345,15 @@ export function CallPage() {
   const [splitView, setSplitView] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
 
-  function showControls() {
+  function showControls(e?: React.MouseEvent | React.TouchEvent) {
+    if (e && "clientX" in e) {
+      const { clientX: x, clientY: y } = e;
+      const last = lastPointerPosRef.current;
+      if (last && last.x === x && last.y === y) return;
+      lastPointerPosRef.current = { x, y };
+    }
     setControlsVisible(true);
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     hideTimerRef.current = setTimeout(() => setControlsVisible(false), 2000);
