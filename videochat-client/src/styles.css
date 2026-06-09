@@ -1306,23 +1306,46 @@ button svg,
   background: #111827;
 }
 
-.local-video {
+.local-video-wrap {
   position: absolute;
   right: 22px;
   bottom: 96px;
   width: min(240px, 34vw);
   aspect-ratio: 4 / 3;
-  object-fit: cover;
   border: 2px solid rgb(255 255 255 / 0.86);
   border-radius: 8px;
-  background: #1f2937;
   cursor: pointer;
-  transition: opacity 0.15s;
   z-index: 2;
+  overflow: hidden;
+  transition: opacity 0.15s;
 }
 
-.local-video:hover {
+.local-video-wrap:hover {
   opacity: 0.88;
+}
+
+.local-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #1f2937;
+  display: block;
+}
+
+.local-video-hint {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgb(255 255 255 / 0.9);
+  background: rgb(0 0 0 / 0.45);
+  padding: 3px 0;
+  letter-spacing: 0.03em;
+  pointer-events: none;
+  text-transform: uppercase;
 }
 
 /* ── Split view ── */
@@ -1333,19 +1356,25 @@ button svg,
   align-items: stretch;
 }
 
-.video-stage--split .remote-video,
-.local-video--split {
+.video-stage--split .remote-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.local-video-wrap--split {
   position: static;
   width: 100%;
   height: 100%;
   aspect-ratio: unset;
-  object-fit: cover;
   border: none;
+  border-left: 2px solid #111;
   border-radius: 0;
 }
 
-.local-video--split {
-  border-left: 2px solid #111;
+.local-video-wrap--split .local-video {
+  width: 100%;
+  height: 100%;
 }
 
 /* Mobile: stack top / bottom */
@@ -1357,11 +1386,11 @@ button svg,
   }
 
   .video-stage--split .remote-video,
-  .local-video--split {
+  .local-video-wrap--split {
     height: 50vh;
   }
 
-  .local-video--split {
+  .local-video-wrap--split {
     border-left: none;
     border-top: 2px solid #111;
   }
@@ -1833,7 +1862,7 @@ th {
     width: 100%;
   }
 
-  .local-video:not(.local-video--split) {
+  .local-video-wrap:not(.local-video-wrap--split) {
     right: 12px;
     bottom: 92px;
     width: min(180px, 42vw);
