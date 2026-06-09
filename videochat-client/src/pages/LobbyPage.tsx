@@ -68,6 +68,12 @@ export function LobbyPage() {
           </div>
         </section>
       </div>
+
+      <footer className="landing-legal">
+        <span className="landing-legal-copy">&copy; 2026 BuckyChat</span>
+        <Link to="/terms">Terms</Link>
+        <Link to="/privacy">Privacy</Link>
+      </footer>
     </main>
   );
 }

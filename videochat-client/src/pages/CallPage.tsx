@@ -661,7 +661,7 @@ export function CallPage() {
       if (msg.type === "partner_left") {
         setNotice("Your partner left.");
         clearMatch();
-        navigate("/lobby", { replace: true });
+        navigate("/call/waiting", { replace: true });
         return;
       }
       if (["offer", "answer", "ice-candidate"].includes(msg.type)) {

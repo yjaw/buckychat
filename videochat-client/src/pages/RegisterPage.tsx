@@ -240,6 +240,10 @@ export function RegisterPage() {
             </CooldownSubmitButton>
           </form>
 
+          <p className="login-switch">
+            Already have an account? <Link to="/login">Sign in</Link>
+          </p>
+
           <p className="login-terms">
             By continuing, you agree to BuckyChat&apos;s{" "}
             <Link to="/terms">Terms of Service</Link> and{" "}

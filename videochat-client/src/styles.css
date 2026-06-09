@@ -263,11 +263,17 @@ a {
 
 .landing-legal {
   display: flex;
+  align-items: center;
   justify-content: center;
   gap: 18px;
   border-top: 1px solid #e5e5e5;
   padding: 20px;
   background: #fafafa;
+}
+
+.landing-legal-copy {
+  color: #9ca3af;
+  font-size: 0.85rem;
 }
 
 .landing-legal a {
@@ -650,8 +656,14 @@ a {
 
 .lobby-page {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   color: #111827;
   background: #f5f7fb;
+}
+
+.lobby-page .app-shell {
+  flex: 1;
 }
 
 .panel {
