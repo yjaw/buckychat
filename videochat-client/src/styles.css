@@ -1801,7 +1801,7 @@ th {
     width: 100%;
   }
 
-  .local-video {
+  .local-video:not(.local-video--split) {
     right: 12px;
     bottom: 92px;
     width: min(180px, 42vw);
