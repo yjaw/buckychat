@@ -31,14 +31,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   }
 
   if (!profile) {
-    return (
-      <main className="center-screen">
-        <section className="panel narrow">
-          <h1>Almost there</h1>
-          <p>{profileError ?? "Confirm your wisc.edu email, then sign in again."}</p>
-        </section>
-      </main>
-    );
+    return <Navigate to="/login?unconfirmed=1" replace />;
   }
 
   return children;

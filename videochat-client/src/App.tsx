@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { GuestRoute } from "./components/GuestRoute";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminPage } from "./pages/AdminPage";
 import { AuthCallbackPage } from "./pages/AuthCallbackPage";
@@ -17,11 +18,11 @@ import { supabaseConfigured } from "./lib/supabase";
 export function App() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
-      <Route path="/login" element={supabaseConfigured ? <LoginPage /> : <SetupPage />} />
-      <Route path="/register" element={supabaseConfigured ? <RegisterPage /> : <SetupPage />} />
+      <Route path="/login" element={supabaseConfigured ? <GuestRoute><LoginPage /></GuestRoute> : <SetupPage />} />
+      <Route path="/register" element={supabaseConfigured ? <GuestRoute><RegisterPage /></GuestRoute> : <SetupPage />} />
       <Route
         path="/forgot-password"
         element={supabaseConfigured ? <ForgotPasswordPage /> : <SetupPage />}

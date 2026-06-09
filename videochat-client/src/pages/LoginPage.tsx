@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { WiscEmailInput, toWiscEmail } from "../components/WiscEmailInput";
@@ -8,6 +8,8 @@ import { useAuth } from "../context/AuthContext";
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const unconfirmed = searchParams.get("unconfirmed") === "1";
   const { refreshProfile } = useAuth();
   const [netid, setNetid] = useState("");
   const [password, setPassword] = useState("");
@@ -91,6 +93,11 @@ export function LoginPage() {
               </span>
             </div>
 
+            {unconfirmed && (
+              <p className="notice">
+                Please confirm your wisc.edu email before signing in. Check your inbox for the confirmation link.
+              </p>
+            )}
             {error && <p className="error">{error}</p>}
 
             <button className="login-submit" type="submit" disabled={loading}>

@@ -941,6 +941,12 @@ button svg,
   font-weight: 700;
 }
 
+.notice {
+  margin-bottom: 0;
+  color: #b45309;
+  font-weight: 700;
+}
+
 .success {
   margin-bottom: 0;
   color: #047857;
