@@ -802,24 +802,27 @@ export function CallPage() {
         {waitingForMatch ? (
           <div className="remote-video dvd-stage" aria-label="Waiting for a match">
             <DvdScreensaver />
+          </div>
+        ) : (
+          <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
+        )}
+        <div className="local-pane">
+          <video
+            ref={localVideoRef}
+            className="local-video local-video--split"
+            autoPlay
+            playsInline
+            muted
+          />
+          {waitingForMatch && (
             <div className="dvd-waiting-label">
               <span className="dvd-waiting-text">
                 {queueState === "waiting" ? "Finding match" : "Connecting"}
               </span>
               <AnimatedDots />
             </div>
-
-          </div>
-        ) : (
-          <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
-        )}
-        <video
-          ref={localVideoRef}
-          className="local-video local-video--split"
-          autoPlay
-          playsInline
-          muted
-        />
+          )}
+        </div>
       </section>
 
       {!waitingForMatch && <aside className={`call-debug${debugVisible ? "" : " call-debug--collapsed"}`} aria-label="WebRTC debug state">
