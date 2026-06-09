@@ -1501,6 +1501,32 @@ button svg,
   pointer-events: none;
 }
 
+.ctrl-wrap {
+  position: relative;
+}
+
+.ctrl-wrap::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgb(0 0 0 / 0.75);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 5px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.ctrl-wrap:hover::after {
+  opacity: 1;
+}
+
 .toast {
   position: absolute;
   left: 50%;
