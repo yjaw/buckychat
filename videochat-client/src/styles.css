@@ -1218,7 +1218,7 @@ button svg,
 .dvd-stage {
   --dvd-logo-width: 156px;
   --dvd-logo-height: 88px;
-  position: relative;
+  position: relative !important; /* must stay relative so dvd-screensaver (absolute) is bounded by this element */
   overflow: hidden;
   background: #05070d;
 }
