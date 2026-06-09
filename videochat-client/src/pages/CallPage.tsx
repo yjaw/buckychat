@@ -342,7 +342,6 @@ export function CallPage() {
   const processedMessageSeqRef = useRef(0);
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
-  const [splitView, setSplitView] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -784,7 +783,7 @@ export function CallPage() {
 
   return (
     <main className="call-screen" onMouseMove={showControls} onTouchStart={showControls}>
-      <section className={`video-stage${splitView ? " video-stage--split" : ""}`}>
+      <section className="video-stage video-stage--split">
         {waitingForMatch ? (
           <div className="remote-video dvd-stage" aria-label="Waiting for a match">
             <DvdScreensaver />
@@ -797,11 +796,10 @@ export function CallPage() {
         )}
         <video
           ref={localVideoRef}
-          className={`local-video${splitView ? " local-video--split" : ""}`}
+          className="local-video local-video--split"
           autoPlay
           playsInline
           muted
-          onClick={() => setSplitView((v) => !v)}
         />
       </section>
 

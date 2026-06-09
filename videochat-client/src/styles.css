@@ -1339,13 +1339,7 @@ button svg,
   object-fit: cover;
   border-radius: 8px;
   background: #1f2937;
-  cursor: pointer;
-  transition: opacity 0.15s;
   z-index: 2;
-}
-
-.local-video:hover {
-  opacity: 0.88;
 }
 
 /* ── Split view ── */
@@ -1367,8 +1361,12 @@ button svg,
   border-radius: 0;
 }
 
+.video-stage--split .remote-video {
+  border-right: 2px solid #000;
+}
+
 .local-video--split {
-  border-left: 2px solid #111;
+  border-left: 2px solid #000;
 }
 
 /* Mobile: stack top / bottom */
@@ -1384,9 +1382,14 @@ button svg,
     height: 50vh;
   }
 
+  .video-stage--split .remote-video {
+    border-right: none;
+    border-bottom: 2px solid #000;
+  }
+
   .local-video--split {
     border-left: none;
-    border-top: 2px solid #111;
+    border-top: 2px solid #000;
   }
 }
 
@@ -1882,11 +1885,6 @@ th {
     width: 100%;
   }
 
-  .local-video:not(.local-video--split) {
-    right: 12px;
-    bottom: 92px;
-    width: min(180px, 42vw);
-  }
 
   .waiting-room-stage {
     --dvd-logo-width: 118px;
