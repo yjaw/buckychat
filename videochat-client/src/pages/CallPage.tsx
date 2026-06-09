@@ -689,7 +689,7 @@ export function CallPage() {
     }
 
     return (
-      <main className="call-screen waiting-call-screen">
+      <main className="call-screen waiting-call-screen" onMouseMove={showControls} onTouchStart={showControls}>
         <section className="waiting-room-stage" aria-label="Waiting for a match">
           <DvdScreensaver />
           <div className="waiting-room-overlay" aria-live="polite">
@@ -698,7 +698,7 @@ export function CallPage() {
           </div>
         </section>
 
-        <CallControls onLeave={leaveWaitingRoom} />
+        <CallControls onLeave={leaveWaitingRoom} hidden={!controlsVisible} />
       </main>
     );
   }
