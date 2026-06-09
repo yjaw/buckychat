@@ -356,7 +356,7 @@ export function CallPage() {
     }
     setControlsVisible(true);
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-    hideTimerRef.current = setTimeout(() => setControlsVisible(false), 2000);
+    hideTimerRef.current = setTimeout(() => setControlsVisible(false), 2500);
   }
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("Inappropriate behavior");
@@ -461,6 +461,15 @@ export function CallPage() {
       navigate(`/call/${activeMatch.roomID}`, { replace: true, state: activeMatch });
     }
   }, [activeMatch, navigate, waitingForMatch]);
+
+  // Leave queue if user navigates away (e.g. browser back)
+  useEffect(() => {
+    return () => {
+      if (queueState === "waiting") {
+        leaveQueue();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!match || !roomID) {
