@@ -341,6 +341,7 @@ export function CallPage() {
   const processedMessageSeqRef = useRef(0);
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
+  const [splitView, setSplitView] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("Inappropriate behavior");
   const [reportDetails, setReportDetails] = useState("");
@@ -781,9 +782,17 @@ export function CallPage() {
 
   return (
     <main className="call-screen">
-      <section className="video-stage">
+      <section className={`video-stage${splitView ? " video-stage--split" : ""}`}>
         <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
-        <video ref={localVideoRef} className="local-video" autoPlay playsInline muted />
+        <video
+          ref={localVideoRef}
+          className={`local-video${splitView ? " local-video--split" : ""}`}
+          autoPlay
+          playsInline
+          muted
+          onClick={() => setSplitView((v) => !v)}
+          title={splitView ? "Exit split view" : "Expand to split view"}
+        />
       </section>
 
       <aside className="call-debug" aria-label="WebRTC debug state">
