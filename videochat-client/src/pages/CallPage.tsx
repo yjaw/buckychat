@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { Camera, CameraOff, Flag, Mic, MicOff, PhoneOff, SkipForward } from "lucide-react";
 import { apiFetch } from "../lib/api";
+import { CallControls } from "../components/CallControls";
 import type { ServerMessage } from "../context/MatchContext";
 import { useMatch } from "../context/MatchContext";
 
@@ -697,11 +697,7 @@ export function CallPage() {
           </div>
         </section>
 
-        <footer className="call-controls">
-          <button className="icon-button danger control" onClick={leaveWaitingRoom} title="Leave queue">
-            <PhoneOff aria-hidden="true" />
-          </button>
-        </footer>
+        <CallControls onLeave={leaveWaitingRoom} />
       </main>
     );
   }
@@ -827,27 +823,16 @@ export function CallPage() {
         </div>
       </aside>
 
-      <footer className={`call-controls${controlsVisible ? "" : " call-controls--hidden"}`}>
-        <button className="icon-button control" onClick={toggleMic} title={micEnabled ? "Mute" : "Unmute"}>
-          {micEnabled ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}
-        </button>
-        <button
-          className="icon-button control"
-          onClick={toggleCamera}
-          title={cameraEnabled ? "Turn camera off" : "Turn camera on"}
-        >
-          {cameraEnabled ? <Camera aria-hidden="true" /> : <CameraOff aria-hidden="true" />}
-        </button>
-        <button className="icon-button control" onClick={() => setReportOpen(true)} title="Report">
-          <Flag aria-hidden="true" />
-        </button>
-        <button className="icon-button control" onClick={skipCall} title="Skip">
-          <SkipForward aria-hidden="true" />
-        </button>
-        <button className="icon-button danger control" onClick={leaveCall} title="Leave">
-          <PhoneOff aria-hidden="true" />
-        </button>
-      </footer>
+      <CallControls
+        hidden={!controlsVisible}
+        micEnabled={micEnabled}
+        cameraEnabled={cameraEnabled}
+        onToggleMic={toggleMic}
+        onToggleCamera={toggleCamera}
+        onReport={() => setReportOpen(true)}
+        onSkip={skipCall}
+        onLeave={leaveCall}
+      />
 
       {(error || notice) && (
         <div className="toast" role="status">

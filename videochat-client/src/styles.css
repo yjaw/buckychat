@@ -1493,7 +1493,7 @@ button svg,
   backdrop-filter: blur(12px);
   opacity: 1;
   transition: opacity 0.4s ease;
-  z-index: 10;
+  z-index: 100;
 }
 
 .call-controls--hidden {
