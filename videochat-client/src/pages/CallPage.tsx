@@ -367,7 +367,8 @@ export function CallPage() {
   const [debugVisible, setDebugVisible] = useState(true);
 
   const match = activeMatch?.roomID === roomID ? activeMatch : null;
-  const waitingForMatch = roomID === WAITING_ROOM_ID && !match;
+  // Waiting whenever we have no active partner — regardless of URL
+  const waitingForMatch = !match;
 
   const updateDebug = useCallback((patch: Partial<DebugState>) => {
     setDebug((current) => ({
@@ -458,10 +459,10 @@ export function CallPage() {
   );
 
   useEffect(() => {
-    if (waitingForMatch && activeMatch) {
+    if (activeMatch && activeMatch.roomID !== roomID) {
       navigate(`/call/${activeMatch.roomID}`, { replace: true, state: activeMatch });
     }
-  }, [activeMatch, navigate, waitingForMatch]);
+  }, [activeMatch, navigate, roomID]);
 
   // Leave queue if user navigates away (e.g. browser back)
   useEffect(() => {
@@ -688,7 +689,6 @@ export function CallPage() {
       if (msg.type === "partner_left") {
         clearMatch();
         joinQueue();
-        navigate("/call/waiting", { replace: true });
         return;
       }
       if (["offer", "answer", "ice-candidate"].includes(msg.type)) {
@@ -699,7 +699,8 @@ export function CallPage() {
     }
   }, [clearMatch, joinQueue, messages, navigate, processSignal, roomID]);
 
-  if (!waitingForMatch && (!match || !roomID)) {
+  // If there's no match and we're not actively queued, user shouldn't be here
+  if (!match && queueState === "idle") {
     return <Navigate to="/lobby" replace />;
   }
 
@@ -783,7 +784,7 @@ export function CallPage() {
 
   return (
     <main className="call-screen" onMouseMove={showControls} onTouchStart={showControls}>
-      <section className={`video-stage${splitView && !waitingForMatch ? " video-stage--split" : ""}`}>
+      <section className={`video-stage${splitView ? " video-stage--split" : ""}`}>
         {waitingForMatch ? (
           <div className="remote-video dvd-stage" aria-label="Waiting for a match">
             <DvdScreensaver />
@@ -796,11 +797,11 @@ export function CallPage() {
         )}
         <video
           ref={localVideoRef}
-          className={`local-video${splitView && !waitingForMatch ? " local-video--split" : ""}`}
+          className={`local-video${splitView ? " local-video--split" : ""}`}
           autoPlay
           playsInline
           muted
-          onClick={() => { if (!waitingForMatch) setSplitView((v) => !v); }}
+          onClick={() => setSplitView((v) => !v)}
         />
       </section>
 
