@@ -27,7 +27,7 @@ export function LobbyPage() {
   return (
     <main className="lobby-page">
       <header className="landing-header page-header">
-        <Link className="landing-brand" to="/" aria-label="BuckyChat home">
+        <Link className="landing-brand" to="/lobby" aria-label="BuckyChat home">
           <BuckyChatLogo markClassName="landing-mark" />
         </Link>
         <div className="landing-actions lobby-header-actions">
