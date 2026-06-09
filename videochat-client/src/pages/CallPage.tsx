@@ -688,6 +688,7 @@ export function CallPage() {
       if (msg.type === "partner_left") {
         setNotice("Your partner left.");
         clearMatch();
+        joinQueue();
         navigate("/call/waiting", { replace: true });
         return;
       }
@@ -697,7 +698,7 @@ export function CallPage() {
         });
       }
     }
-  }, [clearMatch, messages, navigate, processSignal, roomID]);
+  }, [clearMatch, joinQueue, messages, navigate, processSignal, roomID]);
 
   if (waitingForMatch) {
     function leaveWaitingRoom() {
