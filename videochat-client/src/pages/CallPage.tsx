@@ -3,6 +3,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { Flag } from "lucide-react";
 import { apiFetch } from "../lib/api";
 import { CallControls } from "../components/CallControls";
+import { ConnectionErrorBanner } from "../components/ConnectionErrorBanner";
 import type { ServerMessage } from "../context/MatchContext";
 import { useMatch } from "../context/MatchContext";
 
@@ -813,6 +814,8 @@ export function CallPage() {
 
   return (
     <main className="call-screen" onMouseMove={showControls} onTouchStart={showControls}>
+      {connectionState === "error" && <ConnectionErrorBanner kind="error" />}
+      {connectionState === "offline" && waitingForMatch && <ConnectionErrorBanner kind="offline" />}
       <section className="video-stage video-stage--split">
         {waitingForMatch ? (
           <div className="remote-video dvd-stage" aria-label="Waiting for a match">

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Search, X, MonitorSmartphone } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { CameraPermissionBanner } from "../components/CameraPermissionBanner";
+import { ConnectionErrorBanner } from "../components/ConnectionErrorBanner";
 import { PageFooter } from "../components/PageFooter";
 import { useAuth } from "../context/AuthContext";
 import { useMatch } from "../context/MatchContext";
@@ -12,6 +13,7 @@ export function LobbyPage() {
   const navigate = useNavigate();
   const { profile, profileError, signOut } = useAuth();
   const { connectionState, queueState, activeMatch, error, joinQueue, leaveQueue } = useMatch();
+  const wsError = connectionState === "error";
 
   useEffect(() => {
     if (activeMatch) {
@@ -33,6 +35,7 @@ export function LobbyPage() {
   return (
     <main className="lobby-page">
       {cameraBlocked && <CameraPermissionBanner />}
+      {wsError && <ConnectionErrorBanner kind="error" />}
       <header className="landing-header page-header">
         <Link className="landing-brand" to="/lobby" aria-label="BuckyChat home">
           <BuckyChatLogo markClassName="landing-mark" />
