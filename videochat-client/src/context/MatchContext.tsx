@@ -50,6 +50,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
   const { session, profile } = useAuth();
   const wsRef = useRef<WebSocket | null>(null);
   const messageSeqRef = useRef(0);
+  const pendingJoinRef = useRef(false);
   const [connectionState, setConnectionState] = useState<MatchContextValue["connectionState"]>("offline");
   const [queueState, setQueueState] = useState<MatchContextValue["queueState"]>("idle");
   const [activeMatch, setActiveMatch] = useState<MatchInfo | null>(null);
@@ -77,6 +78,10 @@ export function MatchProvider({ children }: { children: ReactNode }) {
     ws.onopen = () => {
       setConnectionState("connected");
       ws.send(JSON.stringify({ type: "auth", token: session.access_token }));
+      if (pendingJoinRef.current) {
+        ws.send(JSON.stringify({ type: "join" }));
+        setQueueState("waiting");
+      }
     };
 
     ws.onmessage = (event) => {
@@ -89,9 +94,11 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         setQueueState("waiting");
       }
       if (msg.type === "idle") {
+        pendingJoinRef.current = false;
         setQueueState("idle");
       }
       if (msg.type === "matched" && msg.roomID && msg.partnerID && msg.role) {
+        pendingJoinRef.current = false;
         setActiveMatch({ roomID: msg.roomID, partnerID: msg.partnerID, role: msg.role });
         setQueueState("matched");
       }
@@ -101,10 +108,12 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         ws.send(JSON.stringify({ type: "join" }));
       }
       if (msg.type === "partner_left" || msg.type === "banned") {
+        pendingJoinRef.current = false;
         setActiveMatch(null);
         setQueueState("idle");
       }
       if (msg.type === "duplicate_session") {
+        pendingJoinRef.current = false;
         setActiveMatch(null);
         setQueueState("idle");
         setError("duplicate_session");
@@ -157,10 +166,12 @@ export function MatchProvider({ children }: { children: ReactNode }) {
       messages,
       error,
       joinQueue: () => {
+        pendingJoinRef.current = true;
         setQueueState("waiting");
         send({ type: "join" });
       },
       leaveQueue: () => {
+        pendingJoinRef.current = false;
         setQueueState("idle");
         send({ type: "leave" });
       },
