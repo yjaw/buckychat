@@ -2,13 +2,14 @@ import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
+import { WiscEmailInput, toWiscEmail } from "../components/WiscEmailInput";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { refreshProfile } = useAuth();
-  const [email, setEmail] = useState("");
+  const [netid, setNetid] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +21,7 @@ export function LoginPage() {
     setError(null);
 
     const { error: authError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+      email: toWiscEmail(netid),
       password
     });
 
@@ -35,8 +36,9 @@ export function LoginPage() {
   }
 
   function onForgotPassword() {
-    const target = email.trim()
-      ? `/forgot-password?email=${encodeURIComponent(email.trim())}`
+    const full = netid.trim() ? toWiscEmail(netid) : "";
+    const target = full
+      ? `/forgot-password?email=${encodeURIComponent(full)}`
       : "/forgot-password";
     navigate(target);
   }
@@ -59,15 +61,7 @@ export function LoginPage() {
           <form onSubmit={onSubmit} className="login-form">
             <div className="login-field">
               <label htmlFor="login-email">Email</label>
-              <input
-                id="login-email"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="student@wisc.edu"
-                autoComplete="email"
-                required
-              />
+              <WiscEmailInput id="login-email" value={netid} onChange={setNetid} />
             </div>
 
             <div className="login-field">

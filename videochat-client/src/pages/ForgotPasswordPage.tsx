@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, MailCheck } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
+import { WiscEmailInput, toWiscEmail, netidFromEmail } from "../components/WiscEmailInput";
 import { CooldownSubmitButton } from "../components/CooldownSubmitButton";
 import { hasWiscDomain, normalizeEmail } from "../lib/email";
 import { getPasswordResetRedirectTo, supabase } from "../lib/supabase";
@@ -9,9 +10,9 @@ import { getPasswordResetRedirectTo, supabase } from "../lib/supabase";
 const resetCooldownSeconds = 60;
 
 export function ForgotPasswordPage() {
-  const [email, setEmail] = useState(() => {
+  const [netid, setNetid] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    return normalizeEmail(params.get("email") ?? "");
+    return netidFromEmail(normalizeEmail(params.get("email") ?? ""));
   });
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -31,13 +32,13 @@ export function ForgotPasswordPage() {
     return () => window.clearInterval(timer);
   }, [resetCooldown]);
 
-  const normalizedCurrentEmail = normalizeEmail(email);
+  const normalizedCurrentEmail = normalizeEmail(toWiscEmail(netid));
   const resetLocked = resetCooldown > 0 && resetEmail === normalizedCurrentEmail;
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const normalizedEmail = normalizeEmail(email);
+    const normalizedEmail = normalizeEmail(toWiscEmail(netid));
     setMessage(null);
     setError(null);
 
@@ -61,7 +62,7 @@ export function ForgotPasswordPage() {
         return;
       }
 
-      setEmail(normalizedEmail);
+      setNetid(netidFromEmail(normalizedEmail));
       setResetEmail(normalizedEmail);
       setResetCooldown(resetCooldownSeconds);
       setMessage(
@@ -73,12 +74,14 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <main className="login-page">
-      <section className="login-panel" aria-labelledby="forgot-password-title">
-        <Link className="login-brand" to="/" aria-label="BuckyChat home">
-          <BuckyChatLogo markClassName="login-brand-mark" />
+    <main className="login-page with-page-header">
+      <header className="landing-header page-header">
+        <Link className="landing-brand" to="/" aria-label="BuckyChat home">
+          <BuckyChatLogo markClassName="landing-mark" />
         </Link>
+      </header>
 
+      <section className="login-panel" aria-labelledby="forgot-password-title">
         <div className="login-shell">
           <div className="login-heading">
             <h1 id="forgot-password-title">Reset password</h1>
@@ -88,15 +91,7 @@ export function ForgotPasswordPage() {
           <form onSubmit={onSubmit} className="login-form">
             <div className="login-field">
               <label htmlFor="forgot-password-email">Email</label>
-              <input
-                id="forgot-password-email"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="student@wisc.edu"
-                autoComplete="email"
-                required
-              />
+              <WiscEmailInput id="forgot-password-email" value={netid} onChange={setNetid} />
             </div>
 
             {error && <p className="error">{error}</p>}

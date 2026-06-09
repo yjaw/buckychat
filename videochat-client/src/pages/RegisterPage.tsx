@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
+import { WiscEmailInput, toWiscEmail } from "../components/WiscEmailInput";
 import { CooldownSubmitButton } from "../components/CooldownSubmitButton";
 import { getAuthRedirectTo, supabase } from "../lib/supabase";
 import { hasWiscDomain, normalizeEmail } from "../lib/email";
@@ -51,7 +52,7 @@ function isExistingAccountResponse(data: Awaited<ReturnType<typeof supabase.auth
 }
 
 export function RegisterPage() {
-  const [email, setEmail] = useState("");
+  const [netid, setNetid] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -91,7 +92,7 @@ export function RegisterPage() {
     setErrorDetails(null);
     setConfirmationEmail(null);
 
-    const normalizedEmail = normalizeEmail(email);
+    const normalizedEmail = normalizeEmail(toWiscEmail(netid));
 
     if (!hasWiscDomain(normalizedEmail)) {
       setError("Use your exact wisc.edu email address.");
@@ -136,7 +137,7 @@ export function RegisterPage() {
   }
 
   async function onResendConfirmation() {
-    const targetEmail = confirmationEmail ?? normalizeEmail(email);
+    const targetEmail = confirmationEmail ?? normalizeEmail(toWiscEmail(netid));
     setMessage(null);
     setError(null);
     setErrorDetails(null);
@@ -192,15 +193,7 @@ export function RegisterPage() {
           <form onSubmit={onSubmit} className="login-form">
             <div className="login-field">
               <label htmlFor="register-email">Email</label>
-              <input
-                id="register-email"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="student@wisc.edu"
-                autoComplete="email"
-                required
-              />
+              <WiscEmailInput id="register-email" value={netid} onChange={setNetid} />
             </div>
 
             <div className="login-field">

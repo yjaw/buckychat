@@ -413,6 +413,27 @@ a {
   color: #777777;
 }
 
+.email-prefix-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.email-prefix-wrap input {
+  flex: 1;
+  padding-right: 108px;
+}
+
+.email-suffix {
+  position: absolute;
+  right: 14px;
+  color: #777777;
+  font-size: 1.05rem;
+  font-weight: 600;
+  pointer-events: none;
+  user-select: none;
+}
+
 .password-control {
   position: relative;
   display: block;
