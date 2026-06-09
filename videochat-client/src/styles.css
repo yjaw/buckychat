@@ -1236,18 +1236,42 @@ button svg,
 
 .dvd-waiting-label {
   position: absolute;
-  bottom: 24px;
+  bottom: 25%;
   left: 50%;
   transform: translateX(-50%);
-  margin: 0;
-  color: rgb(255 255 255 / 0.5);
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   z-index: 5;
   pointer-events: none;
+  white-space: nowrap;
+}
+
+.dvd-waiting-text {
+  color: rgb(255 255 255 / 0.45);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dvd-dots {
+  display: flex;
+  gap: 6px;
+  font-size: 1.6rem;
+  font-weight: 700;
   font-family: monospace;
+  color: rgb(255 255 255 / 0.6);
+}
+
+.dvd-dot {
+  display: inline-block;
+  transition: opacity 0.15s;
+}
+
+.dvd-dot--hidden {
+  opacity: 0;
 }
 
 .dvd-screensaver {

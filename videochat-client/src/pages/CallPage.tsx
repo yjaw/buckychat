@@ -196,15 +196,19 @@ function DvdScreensaver() {
   );
 }
 
-const DOT_FRAMES = [". ", ". .", ". . ."];
-
 function AnimatedDots() {
-  const [frame, setFrame] = useState(0);
+  const [count, setCount] = useState(1);
   useEffect(() => {
-    const id = setInterval(() => setFrame((f) => (f + 1) % DOT_FRAMES.length), 500);
+    const id = setInterval(() => setCount((c) => (c === 3 ? 1 : c + 1)), 500);
     return () => clearInterval(id);
   }, []);
-  return <span aria-hidden="true">{DOT_FRAMES[frame]}</span>;
+  return (
+    <span className="dvd-dots" aria-hidden="true">
+      <span className="dvd-dot">.</span>
+      <span className={`dvd-dot${count >= 2 ? "" : " dvd-dot--hidden"}`}>.</span>
+      <span className={`dvd-dot${count >= 3 ? "" : " dvd-dot--hidden"}`}>.</span>
+    </span>
+  );
 }
 
 function nowLabel() {
@@ -798,9 +802,12 @@ export function CallPage() {
         {waitingForMatch ? (
           <div className="remote-video dvd-stage" aria-label="Waiting for a match">
             <DvdScreensaver />
-            <p className="dvd-waiting-label">
-              {queueState === "waiting" ? <AnimatedDots /> : "Connecting…"}
-            </p>
+            <div className="dvd-waiting-label">
+              <span className="dvd-waiting-text">
+                {queueState === "waiting" ? "Finding match" : "Connecting"}
+              </span>
+              <AnimatedDots />
+            </div>
           </div>
         ) : (
           <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
