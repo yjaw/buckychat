@@ -199,7 +199,7 @@ function DvdScreensaver() {
 function AnimatedDots() {
   const [count, setCount] = useState(1);
   useEffect(() => {
-    const id = setInterval(() => setCount((c) => (c === 3 ? 1 : c + 1)), 500);
+    const id = setInterval(() => setCount((c) => (c === 3 ? 1 : c + 1)), 800);
     return () => clearInterval(id);
   }, []);
   return (
@@ -808,6 +808,7 @@ export function CallPage() {
               </span>
               <AnimatedDots />
             </div>
+
           </div>
         ) : (
           <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
