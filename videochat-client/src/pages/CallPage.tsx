@@ -686,7 +686,6 @@ export function CallPage() {
       processedMessageSeqRef.current = Math.max(processedMessageSeqRef.current, msg.seq);
 
       if (msg.type === "partner_left") {
-        setNotice("Your partner left.");
         clearMatch();
         joinQueue();
         navigate("/call/waiting", { replace: true });
