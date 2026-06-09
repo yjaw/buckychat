@@ -700,18 +700,13 @@ export function CallPage() {
     for (const msg of roomMessages) {
       processedMessageSeqRef.current = Math.max(processedMessageSeqRef.current, msg.seq);
 
-      if (msg.type === "partner_left") {
-        clearMatch();
-        joinQueue();
-        return;
-      }
       if (["offer", "answer", "ice-candidate"].includes(msg.type)) {
         processSignal(msg).catch((caught) => {
           setError(caught instanceof Error ? caught.message : "Could not process WebRTC signal");
         });
       }
     }
-  }, [clearMatch, joinQueue, messages, navigate, processSignal, roomID]);
+  }, [messages, processSignal, roomID]);
 
   // If there's no match and we're not actively queued, user shouldn't be here
   if (!match && queueState === "idle") {

@@ -107,7 +107,15 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         setQueueState("waiting");
         ws.send(JSON.stringify({ type: "join" }));
       }
-      if (msg.type === "partner_left" || msg.type === "banned") {
+      if (msg.type === "partner_left") {
+        // Re-join immediately so queueState never touches "idle" —
+        // avoids the !match && idle guard redirecting to lobby mid-render.
+        setActiveMatch(null);
+        pendingJoinRef.current = true;
+        setQueueState("waiting");
+        ws.send(JSON.stringify({ type: "join" }));
+      }
+      if (msg.type === "banned") {
         pendingJoinRef.current = false;
         setActiveMatch(null);
         setQueueState("idle");
