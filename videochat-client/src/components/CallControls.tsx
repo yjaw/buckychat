@@ -37,11 +37,6 @@ export function CallControls({
               {cameraEnabled ? <Camera aria-hidden="true" /> : <CameraOff aria-hidden="true" />}
             </button>
           </div>
-          <div className="ctrl-wrap" data-tooltip="Report">
-            <button className="icon-button control" onClick={onReport}>
-              <Flag aria-hidden="true" />
-            </button>
-          </div>
           <div className="ctrl-wrap" data-tooltip="Skip">
             <button className="icon-button control" onClick={onSkip}>
               <SkipForward aria-hidden="true" />
