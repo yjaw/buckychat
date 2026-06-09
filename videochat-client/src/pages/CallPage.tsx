@@ -196,6 +196,17 @@ function DvdScreensaver() {
   );
 }
 
+const DOT_FRAMES = [". ", ". .", ". . ."];
+
+function AnimatedDots() {
+  const [frame, setFrame] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setFrame((f) => (f + 1) % DOT_FRAMES.length), 500);
+    return () => clearInterval(id);
+  }, []);
+  return <span aria-hidden="true">{DOT_FRAMES[frame]}</span>;
+}
+
 function nowLabel() {
   return new Date().toLocaleTimeString([], {
     hour: "2-digit",
@@ -787,8 +798,8 @@ export function CallPage() {
         {waitingForMatch ? (
           <div className="remote-video dvd-stage" aria-label="Waiting for a match">
             <DvdScreensaver />
-            <p className="dvd-waiting-label" aria-live="polite">
-              {queueState === "waiting" ? "Finding your match…" : "Connecting…"}
+            <p className="dvd-waiting-label">
+              {queueState === "waiting" ? <AnimatedDots /> : "Connecting…"}
             </p>
           </div>
         ) : (
