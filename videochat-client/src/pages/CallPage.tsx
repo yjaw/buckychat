@@ -487,6 +487,27 @@ export function CallPage() {
     };
   }, []);
 
+  // Open camera/mic as soon as user enters the room, keep open until they leave
+  useEffect(() => {
+    let active = true;
+    navigator.mediaDevices
+      .getUserMedia({ video: true, audio: true })
+      .then((stream) => {
+        if (!active) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        localStreamRef.current = stream;
+        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+      })
+      .catch(() => {/* camera denied — preview stays black */});
+    return () => {
+      active = false;
+      localStreamRef.current?.getTracks().forEach((t) => t.stop());
+      localStreamRef.current = null;
+    };
+  }, []);
+
   useEffect(() => {
     if (!match || !roomID) {
       return;
@@ -502,14 +523,15 @@ export function CallPage() {
           stage: "Requesting camera/mic and ICE config",
           lastEvent: "Starting call setup"
         });
+        // Reuse the already-open stream from the always-on camera effect;
+        // fall back to getUserMedia if it somehow isn't ready yet.
         const [{ iceServers }, localStream] = await Promise.all([
           apiFetch<IceConfig>("/api/ice-config"),
-          navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+          localStreamRef.current
+            ? Promise.resolve(localStreamRef.current)
+            : navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         ]);
-        if (cancelled) {
-          localStream.getTracks().forEach((track) => track.stop());
-          return;
-        }
+        if (cancelled) return;
 
         localStreamRef.current = localStream;
         if (localVideoRef.current) {
@@ -631,8 +653,6 @@ export function CallPage() {
       pcRef.current = null;
       pendingIceCandidatesRef.current = [];
       pendingSignalsRef.current = [];
-      localStreamRef.current?.getTracks().forEach((track) => track.stop());
-      localStreamRef.current = null;
       clearRoomMessages(roomID);
     };
   }, [clearRoomMessages, match, processSignal, roomID, send, updateDebug]);
@@ -859,8 +879,8 @@ export function CallPage() {
         hidden={!controlsVisible}
         micEnabled={micEnabled}
         cameraEnabled={cameraEnabled}
-        onToggleMic={waitingForMatch ? undefined : toggleMic}
-        onToggleCamera={waitingForMatch ? undefined : toggleCamera}
+        onToggleMic={toggleMic}
+        onToggleCamera={toggleCamera}
         onReport={waitingForMatch ? undefined : () => setReportOpen(true)}
         onSkip={waitingForMatch ? undefined : skipCall}
         onLeave={leaveCall}
