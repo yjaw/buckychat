@@ -1363,12 +1363,12 @@ button svg,
 }
 
 .local-video-wrap--split {
-  position: static;
+  position: relative;
   width: 100%;
   height: 100%;
   aspect-ratio: unset;
   border: none;
-  border-left: 2px solid #111;
+  border-left: 2px solid rgb(255 255 255 / 0.86);
   border-radius: 0;
 }
 
@@ -1392,7 +1392,7 @@ button svg,
 
   .local-video-wrap--split {
     border-left: none;
-    border-top: 2px solid #111;
+    border-top: 2px solid rgb(255 255 255 / 0.86);
   }
 }
 
