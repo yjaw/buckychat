@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
+import { PageFooter } from "../components/PageFooter";
 
 const techStack = [
   { name: "GitHub", src: "/github.png", logoClass: "github" },
@@ -75,11 +76,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <footer className="landing-legal">
-        <span className="landing-legal-copy">&copy; 2026 Madisoft LLC</span>
-        <Link to="/terms">Terms</Link>
-        <Link to="/privacy">Privacy</Link>
-      </footer>
+      <PageFooter />
     </main>
   );
 }

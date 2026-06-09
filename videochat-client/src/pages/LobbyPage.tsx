@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Search, X, MonitorSmartphone } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { CameraPermissionBanner } from "../components/CameraPermissionBanner";
+import { PageFooter } from "../components/PageFooter";
 import { useAuth } from "../context/AuthContext";
 import { useMatch } from "../context/MatchContext";
 import { useCameraPermission } from "../hooks/useCameraPermission";
@@ -87,11 +88,7 @@ export function LobbyPage() {
         </section>}
       </div>
 
-      <footer className="landing-legal">
-        <span className="landing-legal-copy">&copy; 2026 BuckyChat</span>
-        <Link to="/terms">Terms</Link>
-        <Link to="/privacy">Privacy</Link>
-      </footer>
+      <PageFooter />
     </main>
   );
 }
