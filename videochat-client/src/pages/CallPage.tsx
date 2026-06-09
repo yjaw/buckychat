@@ -342,6 +342,14 @@ export function CallPage() {
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
   const [splitView, setSplitView] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function showControls() {
+    setControlsVisible(true);
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => setControlsVisible(false), 3000);
+  }
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("Inappropriate behavior");
   const [reportDetails, setReportDetails] = useState("");
@@ -781,7 +789,7 @@ export function CallPage() {
   ];
 
   return (
-    <main className="call-screen">
+    <main className="call-screen" onMouseMove={showControls} onTouchStart={showControls}>
       <section className={`video-stage${splitView ? " video-stage--split" : ""}`}>
         <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
         <video
@@ -819,7 +827,7 @@ export function CallPage() {
         </div>
       </aside>
 
-      <footer className="call-controls">
+      <footer className={`call-controls${controlsVisible ? "" : " call-controls--hidden"}`}>
         <button className="icon-button control" onClick={toggleMic} title={micEnabled ? "Mute" : "Unmute"}>
           {micEnabled ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}
         </button>
