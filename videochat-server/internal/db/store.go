@@ -63,15 +63,14 @@ func (s *Store) GetProfile(ctx context.Context, userID string) (Profile, error) 
 }
 
 func (s *Store) EnsureProfile(ctx context.Context, userID, email string) (Profile, error) {
-	_, err := s.Pool.Exec(ctx, `
+	var p Profile
+	err := s.Pool.QueryRow(ctx, `
 		insert into public.profiles (id, email)
 		values ($1, $2)
 		on conflict (id) do update set email = excluded.email
-	`, userID, email)
-	if err != nil {
-		return Profile{}, err
-	}
-	return s.GetProfile(ctx, userID)
+		returning id::text, email, status, created_at
+	`, userID, email).Scan(&p.ID, &p.Email, &p.Status, &p.CreatedAt)
+	return p, err
 }
 
 func (s *Store) CreateReport(ctx context.Context, reporterID, reportedUserID, roomID, reason, details string) (Report, error) {

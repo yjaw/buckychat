@@ -52,12 +52,10 @@ func CurrentUser(c *fiber.Ctx) (AuthenticatedUser, bool) {
 
 func bearerToken(header string) string {
 	header = strings.TrimSpace(header)
-	if header == "" {
+	rest, ok := strings.CutPrefix(strings.ToLower(header), "bearer ")
+	if !ok {
 		return ""
 	}
-	prefix := "Bearer "
-	if !strings.HasPrefix(strings.ToLower(header), strings.ToLower(prefix)) {
-		return ""
-	}
-	return strings.TrimSpace(header[len(prefix):])
+	// Slice the original header to preserve token casing.
+	return strings.TrimSpace(header[len(header)-len(rest):])
 }

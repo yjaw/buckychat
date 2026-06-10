@@ -99,10 +99,11 @@ func main() {
 		user, _ := auth.CurrentUser(c)
 		return c.JSON(user)
 	})
+	httpClient := &http.Client{Timeout: 10 * time.Second}
 	api.Get("/ice-config", requireUser, func(c *fiber.Ctx) error {
 		ctx, cancel := context.WithTimeout(c.UserContext(), 5*time.Second)
 		defer cancel()
-		iceServers, err := buildICEServers(ctx, cfg)
+		iceServers, err := buildICEServers(ctx, cfg, httpClient)
 		if err != nil {
 			log.Printf("ice config failed: %v", err)
 			return httpx.Error(c, fiber.StatusBadGateway, "could not generate TURN credentials")
@@ -194,9 +195,9 @@ func requireAdmin(admins map[string]bool) fiber.Handler {
 	}
 }
 
-func buildICEServers(ctx context.Context, cfg config.Config) ([]iceServer, error) {
+func buildICEServers(ctx context.Context, cfg config.Config, client *http.Client) ([]iceServer, error) {
 	if cfg.CloudflareTurnKeyID != "" && cfg.CloudflareTurnAPIToken != "" {
-		return cloudflareTurnCredentials(ctx, cfg)
+		return cloudflareTurnCredentials(ctx, cfg, client)
 	}
 
 	stunURLs := []string{}
@@ -224,7 +225,7 @@ func buildICEServers(ctx context.Context, cfg config.Config) ([]iceServer, error
 	return servers, nil
 }
 
-func cloudflareTurnCredentials(ctx context.Context, cfg config.Config) ([]iceServer, error) {
+func cloudflareTurnCredentials(ctx context.Context, cfg config.Config, client *http.Client) ([]iceServer, error) {
 	body, err := json.Marshal(fiber.Map{"ttl": cfg.CloudflareTurnTTL})
 	if err != nil {
 		return nil, err
@@ -241,7 +242,7 @@ func cloudflareTurnCredentials(ctx context.Context, cfg config.Config) ([]iceSer
 	req.Header.Set("Authorization", "Bearer "+cfg.CloudflareTurnAPIToken)
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}

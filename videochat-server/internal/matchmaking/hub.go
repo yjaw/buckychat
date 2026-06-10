@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"strings"
 	"sync"
 	"time"
 
@@ -391,8 +390,4 @@ func (c *Client) sendMessage(msg Outgoing) {
 
 func (c *Client) close() {
 	_ = c.conn.Close()
-}
-
-func CleanSignalType(value string) string {
-	return strings.ToLower(strings.TrimSpace(value))
 }

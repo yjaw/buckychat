@@ -26,7 +26,7 @@ func TestBuildICEServersUsesStaticConfig(t *testing.T) {
 		},
 		TurnUsername:   "test-user",
 		TurnCredential: "test-secret",
-	})
+	}, http.DefaultClient)
 	if err != nil {
 		t.Fatalf("buildICEServers returned error: %v", err)
 	}
@@ -48,13 +48,8 @@ func TestBuildICEServersUsesStaticConfig(t *testing.T) {
 }
 
 func TestBuildICEServersGeneratesCloudflareConfig(t *testing.T) {
-	originalClient := http.DefaultClient
-	defer func() {
-		http.DefaultClient = originalClient
-	}()
-
 	var sawRequest bool
-	http.DefaultClient = &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+	testClient := &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
 		sawRequest = true
 		if req.Method != http.MethodPost {
 			t.Fatalf("method = %s, want %s", req.Method, http.MethodPost)
@@ -98,7 +93,7 @@ func TestBuildICEServersGeneratesCloudflareConfig(t *testing.T) {
 		CloudflareTurnKeyID:    "test-key",
 		CloudflareTurnAPIToken: "test-token",
 		CloudflareTurnTTL:      120,
-	})
+	}, testClient)
 	if err != nil {
 		t.Fatalf("buildICEServers returned error: %v", err)
 	}
