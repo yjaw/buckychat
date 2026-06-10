@@ -1,4 +1,4 @@
-module madfriends/videochat-server
+module buckychat/videochat-server
 
 go 1.26
 

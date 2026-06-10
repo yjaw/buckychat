@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"madfriends/videochat-server/internal/auth"
-	"madfriends/videochat-server/internal/db"
-	"madfriends/videochat-server/internal/ratelimit"
+	"buckychat/videochat-server/internal/auth"
+	"buckychat/videochat-server/internal/db"
+	"buckychat/videochat-server/internal/ratelimit"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/google/uuid"

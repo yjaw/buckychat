@@ -11,12 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"madfriends/videochat-server/internal/auth"
-	"madfriends/videochat-server/internal/config"
-	"madfriends/videochat-server/internal/db"
-	"madfriends/videochat-server/internal/httpx"
-	"madfriends/videochat-server/internal/matchmaking"
-	"madfriends/videochat-server/internal/ratelimit"
+	"buckychat/videochat-server/internal/auth"
+	"buckychat/videochat-server/internal/config"
+	"buckychat/videochat-server/internal/db"
+	"buckychat/videochat-server/internal/httpx"
+	"buckychat/videochat-server/internal/matchmaking"
+	"buckychat/videochat-server/internal/ratelimit"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"

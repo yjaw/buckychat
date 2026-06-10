@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"madfriends/videochat-server/internal/db"
-	"madfriends/videochat-server/internal/httpx"
+	"buckychat/videochat-server/internal/db"
+	"buckychat/videochat-server/internal/httpx"
 
 	"github.com/gofiber/fiber/v2"
 )

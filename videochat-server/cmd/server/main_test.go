@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"madfriends/videochat-server/internal/config"
+	"buckychat/videochat-server/internal/config"
 )
 
 type roundTripFunc func(*http.Request) (*http.Response, error)
