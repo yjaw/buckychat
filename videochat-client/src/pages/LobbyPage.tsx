@@ -84,7 +84,7 @@ export function LobbyPage() {
             <p className={`status ${connected ? "ok" : "warn"}`}>
               {connected ? "Connected" : "Connecting"}
             </p>
-            <h1>{waiting ? "Looking for someone…" : `Good ${getGreeting()}, ${profile?.email?.split("@")[0]}`}</h1>
+            <h1>{`Good ${getGreeting()}, ${profile?.email?.split("@")[0]}`}</h1>
             {profileError && <p className="error">{profileError}</p>}
             {error && !duplicateSession && <p className="error">{error}</p>}
           </div>
