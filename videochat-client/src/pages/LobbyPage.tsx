@@ -22,11 +22,15 @@ export function LobbyPage() {
     }
   }, [activeMatch, navigate]);
 
+  useEffect(() => {
+    if (connectionState === "connected") refreshStats();
+  }, [connectionState, refreshStats]);
+
   const connected = connectionState === "connected";
   const waiting = queueState === "waiting";
   const duplicateSession = error === "duplicate_session";
   const { state: cameraPermission } = useCameraPermission();
-  const stats = useStats(60_000);
+  const { stats, refresh: refreshStats } = useStats(60_000);
   const cameraBlocked = cameraPermission === "denied";
 
   function startMatchSearch() {
@@ -73,12 +77,10 @@ export function LobbyPage() {
             <p className={`status ${connected ? "ok" : "warn"}`}>
               {connected ? "Connected" : "Connecting"}
             </p>
-            {stats && (
-              <div className="lobby-stats">
-                <span><span className="stat-dot online" />{stats.online} Online</span>
-                <span><span className="stat-dot members" />{stats.waiting} In queue</span>
-              </div>
-            )}
+            <div className="lobby-stats">
+              <span><span className="stat-dot online" />{Math.max(stats?.online ?? 1, 1)} Online</span>
+              <span><span className="stat-dot members" />{stats?.waiting ?? 0} In queue</span>
+            </div>
             {profileError && <p className="error">{profileError}</p>}
             {error && !duplicateSession && <p className="error">{error}</p>}
           </div>
