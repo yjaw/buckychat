@@ -2,6 +2,7 @@ package config
 
 import (
 	"bufio"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -132,5 +133,11 @@ func loadDotEnv(path string) {
 		if key != "" && os.Getenv(key) == "" {
 			_ = os.Setenv(key, value)
 		}
+	}
+	// scanner.Scan() returns false both on EOF (normal) and on I/O error.
+	// Without this check a partial read caused by a disk error would silently
+	// look like a clean EOF.
+	if err := scanner.Err(); err != nil {
+		log.Printf("warning: error reading %s: %v", path, err)
 	}
 }
