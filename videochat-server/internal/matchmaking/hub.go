@@ -16,6 +16,13 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	pingInterval  = 30 * time.Second
+	pongWait      = 60 * time.Second
+	maxRoomAge    = 30 * time.Minute
+	roomScanEvery = 5 * time.Minute
+)
+
 type Hub struct {
 	verifier       *auth.Verifier
 	store          *db.Store
@@ -39,9 +46,10 @@ type Client struct {
 }
 
 type Room struct {
-	ID    string
-	UserA string
-	UserB string
+	ID        string
+	UserA     string
+	UserB     string
+	CreatedAt time.Time
 }
 
 type Incoming struct {
@@ -73,6 +81,7 @@ func NewHub(verifier *auth.Verifier, store *db.Store, limiter *ratelimit.Limiter
 		clientRooms:    map[string]string{},
 	}
 	go h.refreshUserCount()
+	go h.expireRooms()
 	return h
 }
 
@@ -82,6 +91,44 @@ func (h *Hub) refreshUserCount() {
 	defer ticker.Stop()
 	for range ticker.C {
 		h.fetchAndCacheUserCount()
+	}
+}
+
+func (h *Hub) expireRooms() {
+	ticker := time.NewTicker(roomScanEvery)
+	defer ticker.Stop()
+	for range ticker.C {
+		now := time.Now()
+		var expired []string
+		h.mu.Lock()
+		for id, room := range h.rooms {
+			if now.Sub(room.CreatedAt) > maxRoomAge {
+				expired = append(expired, id)
+			}
+		}
+		h.mu.Unlock()
+
+		for _, roomID := range expired {
+			log.Printf("hub: closing stale room %s (exceeded %v)", roomID, maxRoomAge)
+			h.mu.Lock()
+			room, ok := h.rooms[roomID]
+			if ok {
+				delete(h.rooms, roomID)
+				delete(h.clientRooms, room.UserA)
+				delete(h.clientRooms, room.UserB)
+			}
+			h.mu.Unlock()
+			if ok {
+				for _, clientID := range []string{room.UserA, room.UserB} {
+					h.mu.Lock()
+					client := h.clients[clientID]
+					h.mu.Unlock()
+					if client != nil {
+						client.sendMessage(Outgoing{Type: "partner_left", RoomID: roomID})
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -122,7 +169,11 @@ func (h *Hub) handleConn(conn *websocket.Conn) {
 		return
 	}
 
-	_ = conn.SetReadDeadline(time.Time{})
+	_ = conn.SetReadDeadline(time.Now().Add(pongWait))
+	conn.SetPongHandler(func(string) error {
+		return conn.SetReadDeadline(time.Now().Add(pongWait))
+	})
+
 	client := &Client{
 		ID:   uuid.NewString(),
 		User: user,
@@ -271,9 +322,10 @@ func (h *Hub) join(client *Client) {
 		}
 
 		room := Room{
-			ID:    uuid.NewString(),
-			UserA: partner.ID,
-			UserB: client.ID,
+			ID:        uuid.NewString(),
+			UserA:     partner.ID,
+			UserB:     client.ID,
+			CreatedAt: time.Now(),
 		}
 		h.rooms[room.ID] = room
 		h.clientRooms[room.UserA] = room.ID
@@ -414,10 +466,23 @@ func (r Room) other(userID string) string {
 }
 
 func (c *Client) writeLoop() {
-	for msg := range c.send {
-		if err := c.conn.WriteJSON(msg); err != nil {
-			c.close()
-			return
+	ticker := time.NewTicker(pingInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case msg, ok := <-c.send:
+			if !ok {
+				return
+			}
+			if err := c.conn.WriteJSON(msg); err != nil {
+				c.close()
+				return
+			}
+		case <-ticker.C:
+			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				c.close()
+				return
+			}
 		}
 	}
 }

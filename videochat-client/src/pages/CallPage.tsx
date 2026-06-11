@@ -91,6 +91,15 @@ const initialDebugState: DebugState = {
 
 const WAITING_ROOM_ID = "waiting";
 const DVD_COLORS = ["#ffffff", "#ef4444", "#facc15", "#22c55e", "#38bdf8", "#c084fc"];
+const MAX_ROOM_MS = 30 * 60 * 1000;
+const WARN_AT_MS = 5 * 60 * 1000;
+
+function formatTimeLeft(ms: number) {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
 
 function DvdScreensaver() {
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -373,6 +382,9 @@ export function CallPage() {
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     hideTimerRef.current = setTimeout(() => setControlsVisible(false), 2500);
   }
+  const matchStartRef = useRef<number | null>(null);
+  const warnedRef = useRef(false);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("Inappropriate behavior");
   const [reportDetails, setReportDetails] = useState("");
@@ -710,6 +722,29 @@ export function CallPage() {
   }, [match]);
 
   useEffect(() => {
+    if (!match) {
+      matchStartRef.current = null;
+      warnedRef.current = false;
+      setTimeLeft(null);
+      return;
+    }
+    if (matchStartRef.current === null) {
+      matchStartRef.current = Date.now();
+      warnedRef.current = false;
+    }
+    const timer = window.setInterval(() => {
+      const elapsed = Date.now() - matchStartRef.current!;
+      const remaining = MAX_ROOM_MS - elapsed;
+      setTimeLeft(remaining);
+      if (remaining <= WARN_AT_MS && !warnedRef.current) {
+        warnedRef.current = true;
+        setNotice("5 minutes remaining in this session.");
+      }
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [match]);
+
+  useEffect(() => {
     if (!roomID) {
       return;
     }
@@ -842,6 +877,12 @@ export function CallPage() {
           )}
         </div>
       </section>
+
+      {!waitingForMatch && timeLeft !== null && (
+        <div className={`call-timer${timeLeft <= WARN_AT_MS ? " call-timer--warn" : ""}`} aria-live="polite">
+          {formatTimeLeft(timeLeft)} remaining
+        </div>
+      )}
 
       {!waitingForMatch && <aside className={`call-debug${debugVisible ? "" : " call-debug--collapsed"}`} aria-label="WebRTC debug state">
         <div className="call-debug-header">
