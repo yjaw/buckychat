@@ -16,6 +16,8 @@ export function LobbyPage() {
   const { connectionState, queueState, activeMatch, error, joinQueue, leaveQueue } = useMatch();
   const wsError = connectionState === "error";
 
+  const { stats, refresh: refreshStats } = useStats(60_000);
+
   useEffect(() => {
     if (activeMatch) {
       navigate(`/call/${activeMatch.roomID}`, { state: activeMatch });
@@ -30,7 +32,6 @@ export function LobbyPage() {
   const waiting = queueState === "waiting";
   const duplicateSession = error === "duplicate_session";
   const { state: cameraPermission } = useCameraPermission();
-  const { stats, refresh: refreshStats } = useStats(60_000);
   const cameraBlocked = cameraPermission === "denied";
 
   function startMatchSearch() {
