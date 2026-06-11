@@ -5,6 +5,9 @@ import { App } from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import { MatchProvider } from "./context/MatchContext";
 import "./styles.css";
+import { initPostHog } from "./lib/posthog";
+
+initPostHog();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { posthog } from "../lib/posthog";
 import { Eye, EyeOff } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { LoginStory } from "../components/LoginStory";
@@ -131,6 +132,7 @@ export function RegisterPage() {
         return;
       }
 
+      posthog.capture("signup_completed");
       setMessage("Check your wisc.edu inbox to confirm your account.");
     } finally {
       setLoading(false);

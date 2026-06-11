@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { Flag } from "lucide-react";
 import { apiFetch } from "../lib/api";
+import { posthog } from "../lib/posthog";
 import { CallControls } from "../components/CallControls";
 import { ConnectionErrorBanner } from "../components/ConnectionErrorBanner";
 import type { ServerMessage } from "../context/MatchContext";
@@ -390,6 +391,7 @@ export function CallPage() {
   const [reportDetails, setReportDetails] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const callStartRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!error) return;
@@ -496,6 +498,14 @@ export function CallPage() {
       navigate(`/call/${activeMatch.roomID}`, { replace: true, state: activeMatch });
     }
   }, [activeMatch, navigate, roomID]);
+
+  // Track when a real match starts
+  useEffect(() => {
+    if (!waitingForMatch) {
+      callStartRef.current = Date.now();
+      posthog.capture("match_found", { role: match?.role });
+    }
+  }, [waitingForMatch]);
 
   // Leave queue if user navigates away (e.g. browser back)
   useEffect(() => {
@@ -631,6 +641,7 @@ export function CallPage() {
             lastEvent: `Peer connection ${pc.connectionState}`
           });
           if (pc.connectionState === "failed" || pc.connectionState === "disconnected") {
+            posthog.capture("webrtc_failed", { state: pc.connectionState });
             setError("Could not connect. Please try another match.");
           }
         };
@@ -800,6 +811,9 @@ export function CallPage() {
   }
 
   function skipCall() {
+    const duration = callStartRef.current ? Math.round((Date.now() - callStartRef.current) / 1000) : null;
+    posthog.capture("call_skipped", { duration_seconds: duration });
+    callStartRef.current = null;
     send({ type: "skip", roomID });
     clearMatch();
     joinQueue();
@@ -810,6 +824,9 @@ export function CallPage() {
     if (waitingForMatch) {
       leaveQueue();
     } else {
+      const duration = callStartRef.current ? Math.round((Date.now() - callStartRef.current) / 1000) : null;
+      posthog.capture("call_ended", { duration_seconds: duration });
+      callStartRef.current = null;
       send({ type: "hangup", roomID });
       clearMatch();
     }
