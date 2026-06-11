@@ -1396,7 +1396,7 @@ button svg,
   --dvd-logo-height: 88px;
   position: relative !important; /* must stay relative so dvd-screensaver (absolute) is bounded by this element */
   overflow: hidden;
-  background: #1a0000;
+  background: #05070d;
 }
 
 /* legacy alias kept for safety */
@@ -1407,7 +1407,7 @@ button svg,
   height: 100vh;
   position: relative;
   overflow: hidden;
-  background: #1a0000;
+  background: #05070d;
 }
 
 .local-pane {
