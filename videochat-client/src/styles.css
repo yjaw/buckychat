@@ -204,6 +204,7 @@ a {
   display: flex;
   align-items: center;
   animation: landing-tech-scroll 48s linear infinite;
+  will-change: transform;
 }
 
 .landing-tech-group {
@@ -1838,6 +1839,9 @@ th {
 }
 
 @keyframes landing-tech-scroll {
+  from {
+    transform: translateX(0%);
+  }
   to {
     transform: translateX(-50%);
   }

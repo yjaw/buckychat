@@ -64,7 +64,7 @@ export function LandingPage() {
                         className={`landing-tech-logo ${tech.logoClass}`}
                         src={tech.src}
                         alt=""
-                        loading="lazy"
+                        loading="eager"
                       />
                     </span>
                   ))}
