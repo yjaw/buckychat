@@ -165,6 +165,7 @@ export function PrivacyContent() {
           <li>Lobby, room, matchmaking, signaling, connection, and error metadata.</li>
           <li>Device, browser, IP address, log, and security information.</li>
           <li>Information you send to us when you request help or report abuse.</li>
+          <li>Anonymous usage analytics such as page views, feature interactions, session counts, and connection success rates, collected via PostHog. No personally identifiable information is included. IP addresses are anonymized and no cookies are used.</li>
         </ul>
         <p>
           BuckyChat does not intentionally record or store live video or audio
@@ -191,7 +192,7 @@ export function PrivacyContent() {
         <p>
           We may share information with service providers that help us run
           BuckyChat, including authentication, hosting, database, logging, email,
-          and infrastructure providers. We may also share information if required
+          analytics (PostHog), and infrastructure providers. We may also share information if required
           by law, to protect users or the service, to investigate abuse, or as
           part of a transfer of the project.
         </p>
