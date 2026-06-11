@@ -1413,6 +1413,7 @@ button svg,
 .local-pane {
   position: relative;
   overflow: hidden;
+  background: #111827;
 }
 
 .local-pane .local-video--split {
@@ -1577,6 +1578,7 @@ button svg,
   border: none;
   border-radius: 12px;
   overflow: hidden;
+  background: #111827;
 }
 
 .video-stage--split .remote-video {
