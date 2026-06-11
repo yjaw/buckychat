@@ -238,12 +238,13 @@ export function RegisterPage() {
             Already have an account? <Link to="/login">Sign in</Link>
           </p>
 
+        </div>
+
           <p className="login-terms">
             By continuing, you agree to BuckyChat&apos;s{" "}
             <Link to="/terms">Terms of Service</Link> and{" "}
-            <Link to="/privacy">Privacy Policy</Link>.
+            <Link to="/privacy">Privacy Policy</Link>, and to receive periodic emails with updates.
           </p>
-        </div>
       </section>
 
       <LoginStory

@@ -287,7 +287,8 @@ a {
 }
 
 .login-page {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: grid;
   color: #121212;
   background: #fafafa;
@@ -524,12 +525,14 @@ a {
 }
 
 .login-terms {
-  max-width: 430px;
-  margin: 52px auto 0;
-  color: #757575;
-  font-size: 1rem;
-  font-weight: 600;
+  width: 100%;
+  margin-top: auto;
+  padding: 24px;
+  color: #9ca3af;
+  font-size: 0.78rem;
+  font-weight: 500;
   line-height: 1.45;
+  text-align: center;
 }
 
 .login-terms a {
@@ -1045,7 +1048,7 @@ button svg,
 
 @media (min-width: 920px) {
   .login-page {
-    grid-template-columns: minmax(480px, 0.82fr) minmax(0, 1.18fr);
+    grid-template-columns: minmax(360px, 0.82fr) minmax(0, 1.18fr);
   }
 
   .login-panel {
@@ -1054,8 +1057,8 @@ button svg,
   }
 
   .login-shell {
-    max-width: 540px;
-    margin-top: 108px;
+    max-width: 420px;
+    margin-top: 32px;
   }
 
   .login-heading h1 {
@@ -1086,8 +1089,7 @@ button svg,
   }
 
   .login-terms {
-    margin-top: 78px;
-    font-size: 0.92rem;
+    font-size: 0.78rem;
   }
 
   .login-story {
