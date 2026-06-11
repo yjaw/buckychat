@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, MailCheck } from "lucide-react";
+import { MailCheck } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { WiscEmailInput, toWiscEmail, netidFromEmail } from "../components/WiscEmailInput";
 import { CooldownSubmitButton } from "../components/CooldownSubmitButton";
@@ -115,10 +115,6 @@ export function ForgotPasswordPage() {
       </section>
 
       <aside className="login-story" aria-label="Password reset story">
-        <Link className="login-doc-link" to="/">
-          <BookOpen aria-hidden="true" />
-          Home
-        </Link>
         <figure>
           <blockquote>
             A fresh password should get you back to campus conversations without
