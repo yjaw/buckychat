@@ -34,7 +34,7 @@ a {
 .landing-page {
   min-height: 100vh;
   color: #121212;
-  background: #fafafa;
+  background: #f7f7f7;
 }
 
 .landing-header {
@@ -154,7 +154,7 @@ a {
   gap: 8px;
   margin: 0;
   color: #121212;
-  font-size: 6.8rem;
+  font-size: 5.5rem;
   font-weight: 500;
   line-height: 0.98;
   letter-spacing: 0;
@@ -172,10 +172,10 @@ a {
 
 .landing-hero-copy > p {
   width: 100%;
-  max-width: 770px;
+  max-width: 650px;
   margin: 38px auto 0;
   color: #252525;
-  font-size: 1.3rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.55;
 }
@@ -1126,8 +1126,10 @@ button svg,
     height: 100vh;
     align-self: start;
     display: grid;
-    place-items: center;
+    align-items: start;
+    justify-items: center;
     padding: 44px;
+    padding-top: 240px;
     background: #fafafa;
   }
 
