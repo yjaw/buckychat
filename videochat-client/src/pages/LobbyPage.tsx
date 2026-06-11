@@ -10,6 +10,14 @@ import { useMatch } from "../context/MatchContext";
 import { useCameraPermission } from "../hooks/useCameraPermission";
 import { useStats } from "../hooks/useStats";
 
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "morning";
+  if (hour < 17) return "afternoon";
+  if (hour < 21) return "evening";
+  return "night";
+}
+
 export function LobbyPage() {
   const navigate = useNavigate();
   const { profile, profileError, signOut } = useAuth();
@@ -76,8 +84,7 @@ export function LobbyPage() {
             <p className={`status ${connected ? "ok" : "warn"}`}>
               {connected ? "Connected" : "Connecting"}
             </p>
-            <h1>{waiting ? "Looking for someone…" : "Ready when you are"}</h1>
-            <p>Welcome, <strong>{profile?.email?.split("@")[0]}</strong></p>
+            <h1>{waiting ? "Looking for someone…" : `Good ${getGreeting()}, ${profile?.email?.split("@")[0]}`}</h1>
             {profileError && <p className="error">{profileError}</p>}
             {error && !duplicateSession && <p className="error">{error}</p>}
           </div>
