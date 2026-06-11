@@ -681,6 +681,30 @@ a {
   flex-direction: column;
   color: #111827;
   background: #f5f7fb;
+  position: relative;
+  overflow: hidden;
+}
+
+.lobby-page::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 420px;
+  background-image: url("/labby-wallpaper.png");
+  background-size: cover;
+  background-position: center top;
+  opacity: 0.18;
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 35%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 35%, black 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.lobby-page > * {
+  position: relative;
+  z-index: 1;
 }
 
 .lobby-page .app-shell {
