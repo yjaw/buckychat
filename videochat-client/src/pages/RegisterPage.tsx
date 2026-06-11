@@ -251,6 +251,7 @@ export function RegisterPage() {
         quote="A verified campus account keeps BuckyChat focused on real UW-Madison conversations."
         caption="@buckychat"
         avatar="BC"
+        wallpaper="wallpaper1.png"
       />
     </main>
   );

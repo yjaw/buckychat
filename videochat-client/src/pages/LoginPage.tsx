@@ -123,6 +123,7 @@ export function LoginPage() {
         quote="BuckyChat makes it easy to turn a quiet moment on campus into a real face-to-face conversation."
         caption="@buckychat"
         avatar="BC"
+        wallpaper="wallpaper2.png"
       />
     </main>
   );

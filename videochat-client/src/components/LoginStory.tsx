@@ -3,11 +3,16 @@ interface LoginStoryProps {
   caption: string;
   avatar: string;
   label?: string;
+  wallpaper?: string;
 }
 
-export function LoginStory({ quote, caption, avatar, label = "BuckyChat story" }: LoginStoryProps) {
+export function LoginStory({ quote, caption, avatar, label = "BuckyChat story", wallpaper }: LoginStoryProps) {
   return (
-    <aside className="login-story" aria-label={label}>
+    <aside
+      className="login-story"
+      aria-label={label}
+      style={wallpaper ? { "--story-wallpaper": `url(/${wallpaper})` } as React.CSSProperties : undefined}
+    >
       <figure>
         <blockquote>{quote}</blockquote>
         <figcaption>

@@ -119,6 +119,7 @@ export function ForgotPasswordPage() {
         caption="Password help"
         avatar="✓"
         label="Password reset story"
+        wallpaper="wallpaper3.png"
       />
     </main>
   );
