@@ -1381,14 +1381,14 @@ button svg,
   min-height: 100vh;
   position: relative;
   overflow: hidden;
-  background: #ffffff;
+  background: #1a0000;
 }
 
 .video-stage {
   width: 100vw;
   height: 100vh;
   position: relative;
-  background: #ffffff;
+  background: #1a0000;
 }
 
 .dvd-stage {
@@ -1396,7 +1396,7 @@ button svg,
   --dvd-logo-height: 88px;
   position: relative !important; /* must stay relative so dvd-screensaver (absolute) is bounded by this element */
   overflow: hidden;
-  background: #ffffff;
+  background: #1a0000;
 }
 
 /* legacy alias kept for safety */
@@ -1407,7 +1407,7 @@ button svg,
   height: 100vh;
   position: relative;
   overflow: hidden;
-  background: #ffffff;
+  background: #1a0000;
 }
 
 .local-pane {
