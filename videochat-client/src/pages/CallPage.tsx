@@ -390,6 +390,12 @@ export function CallPage() {
   const [reportDetails, setReportDetails] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!error) return;
+    const id = setTimeout(() => setError(null), 5000);
+    return () => clearTimeout(id);
+  }, [error]);
   const [debug, setDebug] = useState<DebugState>(initialDebugState);
   const [debugVisible, setDebugVisible] = useState(true);
 
