@@ -1,43 +1,8 @@
-import { Link } from "react-router-dom";
-import { BuckyChatLogo } from "../components/BuckyChatLogo";
-import type { ReactNode } from "react";
-
 const effectiveDate = "June 8, 2026";
 
-function LegalShell({
-  title,
-  eyebrow,
-  children
-}: {
-  title: string;
-  eyebrow: string;
-  children: ReactNode;
-}) {
+export function TermsContent() {
   return (
-    <main className="legal-page">
-      <header className="legal-header">
-        <Link className="login-brand" to="/" aria-label="BuckyChat home">
-          <BuckyChatLogo markClassName="login-brand-mark" />
-        </Link>
-        <nav className="legal-nav" aria-label="Legal navigation">
-          <Link to="/terms">Terms</Link>
-          <Link to="/privacy">Privacy</Link>
-        </nav>
-      </header>
-
-      <article className="legal-document">
-        <p className="legal-eyebrow">{eyebrow}</p>
-        <h1>{title}</h1>
-        <p className="legal-updated">Effective date: {effectiveDate}</p>
-        <div className="legal-body">{children}</div>
-      </article>
-    </main>
-  );
-}
-
-export function TermsPage() {
-  return (
-    <LegalShell title="Terms of Service" eyebrow="BuckyChat legal">
+    <div className="legal-modal-content">
       <section>
         <h2>1. Agreement to these terms</h2>
         <p>
@@ -174,13 +139,13 @@ export function TermsPage() {
           with the service.
         </p>
       </section>
-    </LegalShell>
+    </div>
   );
 }
 
-export function PrivacyPage() {
+export function PrivacyContent() {
   return (
-    <LegalShell title="Privacy Policy" eyebrow="BuckyChat privacy">
+    <div className="legal-modal-content">
       <section>
         <h2>1. Overview</h2>
         <p>
@@ -310,6 +275,6 @@ export function PrivacyPage() {
           with the service.
         </p>
       </section>
-    </LegalShell>
+    </div>
   );
 }

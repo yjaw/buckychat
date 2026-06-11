@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { GuestRoute } from "./components/GuestRoute";
+import { LegalModal } from "./components/LegalModal";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminPage } from "./pages/AdminPage";
 import { AuthCallbackPage } from "./pages/AuthCallbackPage";
@@ -7,7 +8,6 @@ import { CallPage } from "./pages/CallPage";
 import { ConfirmSignupPage } from "./pages/ConfirmSignupPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LandingPage } from "./pages/LandingPage";
-import { PrivacyPage, TermsPage } from "./pages/LegalPages";
 import { LobbyPage } from "./pages/LobbyPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
@@ -17,10 +17,12 @@ import { supabaseConfigured } from "./lib/supabase";
 
 export function App() {
   return (
+    <>
+    <LegalModal />
     <Routes>
       <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
-      <Route path="/terms" element={<TermsPage />} />
-      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/terms" element={<Navigate to="/?legal=terms" replace />} />
+      <Route path="/privacy" element={<Navigate to="/?legal=privacy" replace />} />
       <Route path="/login" element={supabaseConfigured ? <GuestRoute><LoginPage /></GuestRoute> : <SetupPage />} />
       <Route path="/register" element={supabaseConfigured ? <GuestRoute><RegisterPage /></GuestRoute> : <SetupPage />} />
       <Route
@@ -71,5 +73,6 @@ export function App() {
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }

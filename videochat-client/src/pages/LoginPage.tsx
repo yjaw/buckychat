@@ -114,8 +114,8 @@ export function LoginPage() {
 
           <p className="login-terms">
             By continuing, you agree to BuckyChat&apos;s{" "}
-            <Link to="/terms">Terms of Service</Link> and{" "}
-            <Link to="/privacy">Privacy Policy</Link>, and to receive periodic emails with updates.
+            <Link to="?legal=terms">Terms of Service</Link> and{" "}
+            <Link to="?legal=privacy">Privacy Policy</Link>, and to receive periodic emails with updates.
           </p>
       </section>
 
