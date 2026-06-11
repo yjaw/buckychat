@@ -214,6 +214,10 @@ a {
   box-shadow: 0 0 6px #b91c1c99;
 }
 
+.stat-dot.gray {
+  background: #aaa;
+}
+
 .landing-cta-row {
   justify-content: center;
   margin-top: 16px;

@@ -45,7 +45,7 @@ export function LandingPage() {
           </p>
           <div className="landing-stats">
             <span><span className="stat-dot online" />{(stats?.online ?? 0).toLocaleString()} Online</span>
-            <span><span className="stat-dot members" />{(stats?.userCount ?? 0).toLocaleString()} Badger{(stats?.userCount ?? 0) !== 1 ? "s" : ""}</span>
+            <span><span className="stat-dot gray" />{(stats?.userCount ?? 0).toLocaleString()} Badger{(stats?.userCount ?? 0) !== 1 ? "s" : ""}</span>
           </div>
 
           <div className="landing-cta-row">
