@@ -1560,6 +1560,11 @@ button svg,
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 100vh;
   align-items: stretch;
+  max-width: 1800px;
+  max-height: 900px;
+  margin: auto;
+  position: absolute;
+  inset: 0;
 }
 
 .video-stage--split .remote-video,
