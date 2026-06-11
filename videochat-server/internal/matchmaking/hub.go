@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"sync"
 	"time"
 
@@ -26,6 +27,7 @@ type Hub struct {
 	waiting     []string
 	rooms       map[string]Room
 	clientRooms map[string]string
+	userCount   int
 }
 
 type Client struct {
@@ -61,7 +63,7 @@ type Outgoing struct {
 }
 
 func NewHub(verifier *auth.Verifier, store *db.Store, limiter *ratelimit.Limiter, allowSelfMatch bool) *Hub {
-	return &Hub{
+	h := &Hub{
 		verifier:       verifier,
 		store:          store,
 		limiter:        limiter,
@@ -70,6 +72,30 @@ func NewHub(verifier *auth.Verifier, store *db.Store, limiter *ratelimit.Limiter
 		rooms:          map[string]Room{},
 		clientRooms:    map[string]string{},
 	}
+	go h.refreshUserCount()
+	return h
+}
+
+func (h *Hub) refreshUserCount() {
+	h.fetchAndCacheUserCount()
+	ticker := time.NewTicker(time.Hour)
+	defer ticker.Stop()
+	for range ticker.C {
+		h.fetchAndCacheUserCount()
+	}
+}
+
+func (h *Hub) fetchAndCacheUserCount() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	count, err := h.store.CountActiveProfiles(ctx)
+	if err != nil {
+		log.Printf("hub: failed to refresh user count: %v", err)
+		return
+	}
+	h.mu.Lock()
+	h.userCount = count
+	h.mu.Unlock()
 }
 
 func (h *Hub) Handler() func(*websocket.Conn) {
@@ -162,6 +188,22 @@ func (h *Hub) unregister(client *Client) {
 	h.endRoomLocked(client.ID, "partner_left")
 	close(client.send)
 	_ = client.conn.Close()
+}
+
+type Stats struct {
+	Online    int `json:"online"`
+	Waiting   int `json:"waiting"`
+	UserCount int `json:"userCount"`
+}
+
+func (h *Hub) Stats() Stats {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return Stats{
+		Online:    len(h.clients),
+		Waiting:   len(h.waiting),
+		UserCount: h.userCount,
+	}
 }
 
 func (h *Hub) Kick(userID string) {

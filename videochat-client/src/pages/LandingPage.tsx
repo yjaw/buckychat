@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { PageFooter } from "../components/PageFooter";
+import { useStats } from "../hooks/useStats";
 
 const techStack = [
   { name: "GitHub", src: "/github.png", logoClass: "github" },
@@ -12,6 +13,8 @@ const techStack = [
 ];
 
 export function LandingPage() {
+  const stats = useStats(null);
+
   return (
     <main className="landing-page">
       <header className="landing-header">
@@ -40,6 +43,11 @@ export function LandingPage() {
             account, jump into a room, and start face-to-face conversations without
             the noise.
           </p>
+          <div className="landing-stats">
+            <span><span className="stat-dot online" />{stats ? stats.online.toLocaleString() : "—"} Online</span>
+            <span><span className="stat-dot members" />{stats ? stats.userCount.toLocaleString() : "—"} Badger{!stats || stats.userCount !== 1 ? "s" : ""}</span>
+          </div>
+
           <div className="landing-cta-row">
             <Link className="landing-button accent large" to="/login">
               Start to chat

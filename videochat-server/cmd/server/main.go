@@ -236,6 +236,12 @@ func main() {
 		return c.JSON(fiber.Map{"ok": true})
 	})
 
+	// GET /api/stats returns live online and waiting counts. No auth required so
+	// the lobby can poll it before the WebSocket handshake completes.
+	api.Get("/stats", func(c *fiber.Ctx) error {
+		return c.JSON(hub.Stats())
+	})
+
 	// Reject plain HTTP requests to the /ws path before the upgrade handler sees them.
 	// IsWebSocketUpgrade checks for the "Upgrade: websocket" header.
 	app.Use("/ws", func(c *fiber.Ctx) error {

@@ -131,6 +131,12 @@ func (s *Store) ListReports(ctx context.Context, limit int) ([]Report, error) {
 	return reports, rows.Err()
 }
 
+func (s *Store) CountActiveProfiles(ctx context.Context) (int, error) {
+	var count int
+	err := s.Pool.QueryRow(ctx, `select count(*) from public.profiles where status = 'active'`).Scan(&count)
+	return count, err
+}
+
 func (s *Store) BanUser(ctx context.Context, userID, bannedBy, reason string) error {
 	tx, err := s.Pool.Begin(ctx)
 	if err != nil {

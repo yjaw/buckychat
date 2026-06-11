@@ -8,6 +8,7 @@ import { PageFooter } from "../components/PageFooter";
 import { useAuth } from "../context/AuthContext";
 import { useMatch } from "../context/MatchContext";
 import { useCameraPermission } from "../hooks/useCameraPermission";
+import { useStats } from "../hooks/useStats";
 
 export function LobbyPage() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export function LobbyPage() {
   const waiting = queueState === "waiting";
   const duplicateSession = error === "duplicate_session";
   const { state: cameraPermission } = useCameraPermission();
+  const stats = useStats(60_000);
   const cameraBlocked = cameraPermission === "denied";
 
   function startMatchSearch() {
@@ -71,6 +73,12 @@ export function LobbyPage() {
             <p className={`status ${connected ? "ok" : "warn"}`}>
               {connected ? "Connected" : "Connecting"}
             </p>
+            {stats && (
+              <div className="lobby-stats">
+                <span><span className="stat-dot online" />{stats.online} Online</span>
+                <span><span className="stat-dot members" />{stats.waiting} In queue</span>
+              </div>
+            )}
             {profileError && <p className="error">{profileError}</p>}
             {error && !duplicateSession && <p className="error">{error}</p>}
           </div>
