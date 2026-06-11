@@ -294,6 +294,10 @@ a {
   --logo-height: 26px;
 }
 
+.landing-tech-logo.posthog {
+  --logo-height: 28px;
+}
+
 .landing-audience p {
   max-width: 650px;
   margin: 16px auto 0;

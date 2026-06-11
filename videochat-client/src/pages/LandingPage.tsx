@@ -10,6 +10,7 @@ const techStack = [
   { name: "Cloudflare", src: "/cloudflare.png", logoClass: "cloudflare" },
   { name: "Railway", src: "/railway.png", logoClass: "railway" },
   { name: "Resend", src: "/resend.png", logoClass: "resend" },
+  { name: "PostHog", src: "/posthog.svg", logoClass: "posthog" },
 ];
 
 export function LandingPage() {
