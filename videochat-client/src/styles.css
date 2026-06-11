@@ -1424,7 +1424,7 @@ button svg,
 
 .dvd-waiting-label {
   position: absolute;
-  top: 20px;
+  top: 28px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;

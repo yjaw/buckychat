@@ -861,6 +861,12 @@ export function CallPage() {
         {waitingForMatch ? (
           <div className="remote-video dvd-stage" aria-label="Waiting for a match">
             <DvdScreensaver />
+            <div className="dvd-waiting-label">
+              <span className="dvd-waiting-text">
+                {queueState === "waiting" ? "Finding match" : "Connecting"}
+              </span>
+              <AnimatedDots />
+            </div>
           </div>
         ) : (
           <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
@@ -873,14 +879,6 @@ export function CallPage() {
             playsInline
             muted
           />
-          {waitingForMatch && (
-            <div className="dvd-waiting-label">
-              <span className="dvd-waiting-text">
-                {queueState === "waiting" ? "Finding match" : "Connecting"}
-              </span>
-              <AnimatedDots />
-            </div>
-          )}
         </div>
       </section>
 
