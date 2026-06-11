@@ -884,7 +884,14 @@ export function CallPage() {
         </div>
       )}
 
-      {!waitingForMatch && <aside className={`call-debug${debugVisible ? "" : " call-debug--collapsed"}`} aria-label="WebRTC debug state">
+      {!waitingForMatch && (
+        <div className={`call-conn-status call-conn-status--${debug.methodTone}`} aria-label="Connection status">
+          <span className="call-conn-dot" />
+          {debug.method}
+        </div>
+      )}
+
+      {import.meta.env.DEV && !waitingForMatch && <aside className={`call-debug${debugVisible ? "" : " call-debug--collapsed"}`} aria-label="WebRTC debug state">
         <div className="call-debug-header">
           <div>
             <p>WebRTC debug</p>
