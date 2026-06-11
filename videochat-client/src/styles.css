@@ -1467,9 +1467,9 @@ button svg,
   inset: 0;
   overflow: hidden;
   background:
-    radial-gradient(circle at 16% 12%, rgb(197 5 12 / 0.18), transparent 28%),
-    radial-gradient(circle at 86% 82%, rgb(250 204 21 / 0.14), transparent 26%),
-    #ffffff;
+    radial-gradient(circle at 16% 12%, rgb(197 5 12 / 0.35), transparent 28%),
+    radial-gradient(circle at 86% 82%, rgb(250 204 21 / 0.10), transparent 26%),
+    #05070d;
 }
 
 .dvd-logo {
