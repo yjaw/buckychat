@@ -10,6 +10,21 @@ import { useMatch } from "../context/MatchContext";
 import { useCameraPermission } from "../hooks/useCameraPermission";
 import { useStats } from "../hooks/useStats";
 
+const SUBTITLES = [
+  "Who will you meet today?",
+  "Jump in and start a conversation.",
+  "Your campus community is waiting.",
+  "A new face is just one click away.",
+  "Every great conversation starts somewhere.",
+  "Someone out there is ready to chat.",
+  "Make someone's day — say hello.",
+  "You never know who you'll meet.",
+  "The best talks happen unexpectedly.",
+  "Connect with a fellow Badger right now.",
+];
+
+const RANDOM_SUBTITLE = SUBTITLES[Math.floor(Math.random() * SUBTITLES.length)];
+
 function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return "morning";
@@ -85,6 +100,7 @@ export function LobbyPage() {
               {connected ? "Connected" : "Connecting"}
             </p>
             <h1>{`Good ${getGreeting()}, ${profile?.email?.split("@")[0]}`}</h1>
+            <p>{RANDOM_SUBTITLE}</p>
             {profileError && <p className="error">{profileError}</p>}
             {error && !duplicateSession && <p className="error">{error}</p>}
           </div>
