@@ -1556,35 +1556,35 @@ button svg,
 
 /* ── Split view ── */
 .video-stage--split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 100vh;
-  align-items: stretch;
-  max-width: 1800px;
-  max-height: 900px;
-  margin: auto;
-  position: absolute;
-  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  height: 100vh;
 }
 
 .video-stage--split .remote-video,
 .local-video--split,
 .video-stage--split .local-pane {
   position: static;
-  width: 100%;
+  width: 50%;
   height: 100%;
+  max-width: 860px;
+  max-height: 860px;
   aspect-ratio: unset;
   object-fit: cover;
   border: none;
-  border-radius: 0;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .video-stage--split .remote-video {
-  border-right: 2px solid #000;
+  border-right: none;
 }
 
 .local-video--split {
-  border-left: 2px solid #000;
+  border-left: none;
 }
 
 /* Mobile: stack top / bottom */
