@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { MailCheck } from "lucide-react";
+import { LoginStory } from "../components/LoginStory";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { WiscEmailInput, toWiscEmail, netidFromEmail } from "../components/WiscEmailInput";
 import { CooldownSubmitButton } from "../components/CooldownSubmitButton";
@@ -114,20 +114,12 @@ export function ForgotPasswordPage() {
         </div>
       </section>
 
-      <aside className="login-story" aria-label="Password reset story">
-        <figure>
-          <blockquote>
-            A fresh password should get you back to campus conversations without
-            making you jump through extra hoops.
-          </blockquote>
-          <figcaption>
-            <span className="login-avatar" aria-hidden="true">
-              <MailCheck aria-hidden="true" />
-            </span>
-            <span>Password help</span>
-          </figcaption>
-        </figure>
-      </aside>
+      <LoginStory
+        quote="A fresh password should get you back to campus conversations without making you jump through extra hoops."
+        caption="Password help"
+        avatar="✓"
+        label="Password reset story"
+      />
     </main>
   );
 }

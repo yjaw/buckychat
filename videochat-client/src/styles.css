@@ -1091,12 +1091,19 @@ button svg,
   }
 
   .login-story {
-    min-height: 100vh;
-    position: relative;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    align-self: start;
     display: grid;
     place-items: center;
     padding: 44px;
     background: #fafafa;
+  }
+
+  .with-page-header .login-story {
+    top: var(--page-header-height);
+    height: calc(100vh - var(--page-header-height));
   }
 
   .login-doc-link {

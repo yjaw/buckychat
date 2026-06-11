@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
+import { LoginStory } from "../components/LoginStory";
 import { WiscEmailInput, toWiscEmail } from "../components/WiscEmailInput";
 import { CooldownSubmitButton } from "../components/CooldownSubmitButton";
 import { getAuthRedirectTo, supabase } from "../lib/supabase";
@@ -245,20 +246,11 @@ export function RegisterPage() {
         </div>
       </section>
 
-      <aside className="login-story" aria-label="BuckyChat story">
-        <figure>
-          <blockquote>
-            A verified campus account keeps BuckyChat focused on real UW-Madison
-            conversations.
-          </blockquote>
-          <figcaption>
-            <span className="login-avatar" aria-hidden="true">
-              BC
-            </span>
-            <span>@buckychat</span>
-          </figcaption>
-        </figure>
-      </aside>
+      <LoginStory
+        quote="A verified campus account keeps BuckyChat focused on real UW-Madison conversations."
+        caption="@buckychat"
+        avatar="BC"
+      />
     </main>
   );
 }
