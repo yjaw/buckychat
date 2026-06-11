@@ -16,7 +16,7 @@ export function WiscEmailInput({ id, value, onChange }: WiscEmailInputProps) {
         ref={inputRef}
         type="text"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value.replace(/@/g, ""))}
         placeholder="netid"
         autoComplete="username"
         required
