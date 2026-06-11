@@ -6,7 +6,7 @@ export function PageFooter() {
       <span className="landing-legal-copy">&copy; 2026 Madisoft LLC</span>
       <Link to="?legal=terms">Terms</Link>
       <Link to="?legal=privacy">Privacy</Link>
-      <a href="https://tally.so" target="_blank" rel="noreferrer">Feedback</a>
+      <a href="https://tally.so/r/q4NGZ5" target="_blank" rel="noreferrer">Feedback</a>
     </footer>
   );
 }
