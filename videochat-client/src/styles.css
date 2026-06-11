@@ -1329,10 +1329,11 @@ button svg,
 .lobby-stats {
   display: flex;
   gap: 16px;
-  margin-top: 10px;
+  margin-bottom: 12px;
   font-size: 0.8rem;
   font-weight: 600;
   color: #666;
+  justify-content: center;
 }
 
 .lobby-stats span {
@@ -1347,7 +1348,7 @@ button svg,
 
 .status {
   display: inline-flex;
-  margin-bottom: 0;
+  margin-bottom: 12px;
   padding: 5px 9px;
   border-radius: 999px;
   font-size: 0.82rem;
@@ -1367,7 +1368,8 @@ button svg,
 .match-control {
   min-width: 220px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }
 
 .call-screen {

@@ -73,20 +73,20 @@ export function LobbyPage() {
         )}
         {!duplicateSession && <section className="lobby-band">
           <div className="lobby-copy">
-            <h1>{waiting ? "Looking for someone" : "Ready when you are"}</h1>
-            <p>{profile?.email}</p>
             <p className={`status ${connected ? "ok" : "warn"}`}>
               {connected ? "Connected" : "Connecting"}
             </p>
-            <div className="lobby-stats">
-              <span><span className="stat-dot online" />{Math.max(stats?.online ?? 1, 1)} Online</span>
-              <span><span className="stat-dot members" />{stats?.waiting ?? 0} In queue</span>
-            </div>
+            <h1>{waiting ? "Looking for someone…" : "Ready when you are"}</h1>
+            <p>Welcome, <strong>{profile?.email?.split("@")[0]}</strong></p>
             {profileError && <p className="error">{profileError}</p>}
             {error && !duplicateSession && <p className="error">{error}</p>}
           </div>
 
           <div className="match-control">
+            <div className="lobby-stats">
+              <span><span className="stat-dot online" />{Math.max(stats?.online ?? 1, 1)} Online</span>
+              <span><span className="stat-dot members" />{stats?.waiting ?? 0} In queue</span>
+            </div>
             {waiting ? (
               <button className="secondary large" onClick={leaveQueue}>
                 <X aria-hidden="true" />
