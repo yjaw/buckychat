@@ -249,8 +249,8 @@ export function RegisterPage() {
 
       <LoginStory
         quote="A verified campus account keeps BuckyChat focused on real UW-Madison conversations."
-        caption="@buckychat"
-        avatar="BC"
+        caption="@registration"
+        avatar="RG"
         wallpaper="wallpaper1.png"
       />
     </main>

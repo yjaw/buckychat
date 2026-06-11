@@ -116,8 +116,8 @@ export function ForgotPasswordPage() {
 
       <LoginStory
         quote="A fresh password should get you back to campus conversations without making you jump through extra hoops."
-        caption="Password help"
-        avatar="✓"
+        caption="@locksmith"
+        avatar="LS"
         label="Password reset story"
         wallpaper="wallpaper3.png"
       />
