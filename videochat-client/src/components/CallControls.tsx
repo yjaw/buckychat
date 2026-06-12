@@ -28,24 +28,32 @@ export function CallControls({
       {isActiveCall && (
         <>
           <div className="ctrl-wrap" data-tooltip={micEnabled ? "Mute" : "Unmute"}>
-            <button className="icon-button control" onClick={onToggleMic}>
+            <button
+              className="icon-button control"
+              onClick={onToggleMic}
+              aria-label={micEnabled ? "Mute microphone" : "Unmute microphone"}
+            >
               {micEnabled ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}
             </button>
           </div>
           <div className="ctrl-wrap" data-tooltip={cameraEnabled ? "Camera off" : "Camera on"}>
-            <button className="icon-button control" onClick={onToggleCamera}>
+            <button
+              className="icon-button control"
+              onClick={onToggleCamera}
+              aria-label={cameraEnabled ? "Turn camera off" : "Turn camera on"}
+            >
               {cameraEnabled ? <Camera aria-hidden="true" /> : <CameraOff aria-hidden="true" />}
             </button>
           </div>
           <div className="ctrl-wrap" data-tooltip="Skip">
-            <button className="icon-button control" onClick={onSkip}>
+            <button className="icon-button control" onClick={onSkip} aria-label="Skip match">
               <SkipForward aria-hidden="true" />
             </button>
           </div>
         </>
       )}
       <div className="ctrl-wrap" data-tooltip="Leave">
-        <button className="icon-button danger control" onClick={onLeave}>
+        <button className="icon-button danger control" onClick={onLeave} aria-label="Leave call">
           <PhoneOff aria-hidden="true" />
         </button>
       </div>

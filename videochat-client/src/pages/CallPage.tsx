@@ -372,6 +372,8 @@ export function CallPage() {
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
+  const localStreamPromiseRef = useRef<Promise<MediaStream> | null>(null);
+  const localStreamGenerationRef = useRef(0);
   const pendingSignalsRef = useRef<ServerMessage[]>([]);
   const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const processedMessageSeqRef = useRef(0);
@@ -431,6 +433,39 @@ export function CallPage() {
       track.enabled = cameraEnabledRef.current;
     });
   }, []);
+
+  const getLocalStream = useCallback(() => {
+    if (localStreamRef.current) {
+      return Promise.resolve(localStreamRef.current);
+    }
+
+    if (!localStreamPromiseRef.current) {
+      const generation = localStreamGenerationRef.current;
+      const streamPromise = navigator.mediaDevices
+        .getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          if (generation !== localStreamGenerationRef.current) {
+            stream.getTracks().forEach((track) => track.stop());
+            throw new DOMException("Local media request was cancelled.", "AbortError");
+          }
+          applyTrackToggles(stream);
+          localStreamRef.current = stream;
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = stream;
+          }
+          return stream;
+        })
+        .catch((error: unknown) => {
+          if (localStreamPromiseRef.current === streamPromise) {
+            localStreamPromiseRef.current = null;
+          }
+          throw error;
+        });
+      localStreamPromiseRef.current = streamPromise;
+    }
+
+    return localStreamPromiseRef.current;
+  }, [applyTrackToggles]);
 
   const updateDebug = useCallback((patch: Partial<DebugState>) => {
     setDebug((current) => ({
@@ -546,16 +581,14 @@ export function CallPage() {
   // Open camera/mic as soon as user enters the room, keep open until they leave
   useEffect(() => {
     let active = true;
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
+    getLocalStream()
       .then((stream) => {
         if (!active) {
-          stream.getTracks().forEach((t) => t.stop());
           return;
         }
-        applyTrackToggles(stream);
-        localStreamRef.current = stream;
-        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
       })
       .catch(() => {
         if (active) {
@@ -568,10 +601,12 @@ export function CallPage() {
       });
     return () => {
       active = false;
+      localStreamGenerationRef.current += 1;
       localStreamRef.current?.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
+      localStreamPromiseRef.current = null;
     };
-  }, []);
+  }, [getLocalStream]);
 
   useEffect(() => {
     if (!match || !roomID) {
@@ -588,13 +623,9 @@ export function CallPage() {
           stage: "Requesting camera/mic and ICE config",
           lastEvent: "Starting call setup"
         });
-        // Reuse the already-open stream from the always-on camera effect;
-        // fall back to getUserMedia if it somehow isn't ready yet.
         const [{ iceServers }, localStream] = await Promise.all([
           apiFetch<IceConfig>("/api/ice-config"),
-          localStreamRef.current
-            ? Promise.resolve(localStreamRef.current)
-            : navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+          getLocalStream()
         ]);
         if (cancelled) return;
 
@@ -729,7 +760,7 @@ export function CallPage() {
       pendingSignalsRef.current = [];
       clearRoomMessages(roomID);
     };
-  }, [clearRoomMessages, match, processSignal, roomID, send, updateDebug]);
+  }, [clearRoomMessages, getLocalStream, match, processSignal, roomID, send, updateDebug]);
 
   useEffect(() => {
     if (!match) {

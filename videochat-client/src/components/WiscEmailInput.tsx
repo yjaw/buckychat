@@ -16,7 +16,7 @@ export function WiscEmailInput({ id, value, onChange }: WiscEmailInputProps) {
         ref={inputRef}
         type="text"
         value={value}
-        onChange={(e) => onChange(e.target.value.replace(/@/g, ""))}
+        onChange={(e) => onChange(normalizeNetid(e.target.value))}
         placeholder="netid"
         autoComplete="username"
         required
@@ -24,6 +24,10 @@ export function WiscEmailInput({ id, value, onChange }: WiscEmailInputProps) {
       <span className="email-suffix">@wisc.edu</span>
     </div>
   );
+}
+
+function normalizeNetid(value: string) {
+  return value.trim().replace(/@wisc\.edu$/i, "").replace(/@/g, "");
 }
 
 export function toWiscEmail(netid: string) {
