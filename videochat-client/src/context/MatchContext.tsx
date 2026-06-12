@@ -51,6 +51,13 @@ export function MatchProvider({ children }: { children: ReactNode }) {
   const wsRef = useRef<WebSocket | null>(null);
   const messageSeqRef = useRef(0);
   const pendingJoinRef = useRef(false);
+  // The hub only verifies the token on the first message, so a routine
+  // Supabase token refresh must not tear down a healthy socket (closing it
+  // ends any active room server-side). Keep the token in a ref and key the
+  // connection effect on auth status alone.
+  const tokenRef = useRef<string | null>(null);
+  tokenRef.current = session?.access_token ?? null;
+  const isAuthed = Boolean(session?.access_token) && profile?.status === "active";
   const [connectionState, setConnectionState] = useState<MatchContextValue["connectionState"]>("offline");
   const [queueState, setQueueState] = useState<MatchContextValue["queueState"]>("idle");
   const [activeMatch, setActiveMatch] = useState<MatchInfo | null>(null);
@@ -59,7 +66,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!session?.access_token || profile?.status !== "active") {
+    if (!isAuthed) {
       wsRef.current?.close();
       wsRef.current = null;
       setConnectionState("offline");
@@ -77,7 +84,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
 
     ws.onopen = () => {
       setConnectionState("connected");
-      ws.send(JSON.stringify({ type: "auth", token: session.access_token }));
+      ws.send(JSON.stringify({ type: "auth", token: tokenRef.current }));
       if (pendingJoinRef.current) {
         ws.send(JSON.stringify({ type: "join" }));
         setQueueState("waiting");
@@ -104,6 +111,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
       }
       if (msg.type === "skipped") {
         setActiveMatch(null);
+        pendingJoinRef.current = true;
         setQueueState("waiting");
         ws.send(JSON.stringify({ type: "join" }));
       }
@@ -149,7 +157,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         wsRef.current = null;
       }
     };
-  }, [session?.access_token, profile?.status]);
+  }, [isAuthed]);
 
   const send = useCallback((message: ClientMessage) => {
     const ws = wsRef.current;

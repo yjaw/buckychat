@@ -50,6 +50,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(next);
       setProfileError(null);
     } catch (error) {
+      // RequireActiveUser rejects non-active accounts with 403 before /api/me
+      // can return {status: "banned"}, so map the 403 back to a banned profile.
+      if (error instanceof ApiError && error.status === 403 && data.session.user.email) {
+        setProfile({
+          id: data.session.user.id,
+          email: data.session.user.email,
+          status: "banned"
+        });
+        setProfileError(null);
+        return;
+      }
+
       if (!(error instanceof ApiError) && data.session.user.email) {
         setProfile({
           id: data.session.user.id,
@@ -118,6 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await supabase.auth.signOut();
         setSession(null);
         setProfile(null);
+        setProfileError(null);
       }
     }),
     [session, profile, loading, profileError]

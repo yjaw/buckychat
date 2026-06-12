@@ -92,8 +92,17 @@ const initialDebugState: DebugState = {
 
 const WAITING_ROOM_ID = "waiting";
 const DVD_COLORS = ["#ffffff", "#ef4444", "#facc15", "#22c55e", "#38bdf8", "#c084fc"];
-const MAX_ROOM_MS = 30 * 60 * 1000;
+// Must match maxRoomAge in videochat-server/internal/matchmaking/hub.go.
+const MAX_ROOM_MS = 20 * 60 * 1000;
 const WARN_AT_MS = 5 * 60 * 1000;
+
+type ToastState = {
+  text: string;
+  tone: "error" | "info";
+  // Sticky toasts describe unrecoverable states (camera blocked, call setup
+  // failed) and must not auto-dismiss.
+  sticky?: boolean;
+};
 
 function formatTimeLeft(ms: number) {
   const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
@@ -368,6 +377,10 @@ export function CallPage() {
   const processedMessageSeqRef = useRef(0);
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
+  // Mirror the toggle state in refs so streams that arrive after a toggle
+  // (getUserMedia resolving late) still get the user's chosen mute state.
+  const micEnabledRef = useRef(true);
+  const cameraEnabledRef = useRef(true);
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -389,21 +402,35 @@ export function CallPage() {
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("Inappropriate behavior");
   const [reportDetails, setReportDetails] = useState("");
-  const [notice, setNotice] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastState | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
   const callStartRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!error) return;
-    const id = setTimeout(() => setError(null), 5000);
+    if (!toast || toast.sticky) return;
+    const id = setTimeout(() => setToast(null), 5000);
     return () => clearTimeout(id);
-  }, [error]);
+  }, [toast]);
   const [debug, setDebug] = useState<DebugState>(initialDebugState);
   const [debugVisible, setDebugVisible] = useState(true);
 
   const match = activeMatch?.roomID === roomID ? activeMatch : null;
   // Waiting whenever we have no active partner — regardless of URL
   const waitingForMatch = !match;
+
+  // Mirror queueState in a ref so the unmount cleanup sees the value at
+  // unmount time, not the value captured when the effect mounted.
+  const queueStateRef = useRef(queueState);
+  queueStateRef.current = queueState;
+
+  const applyTrackToggles = useCallback((stream: MediaStream) => {
+    stream.getAudioTracks().forEach((track) => {
+      track.enabled = micEnabledRef.current;
+    });
+    stream.getVideoTracks().forEach((track) => {
+      track.enabled = cameraEnabledRef.current;
+    });
+  }, []);
 
   const updateDebug = useCallback((patch: Partial<DebugState>) => {
     setDebug((current) => ({
@@ -510,7 +537,7 @@ export function CallPage() {
   // Leave queue if user navigates away (e.g. browser back)
   useEffect(() => {
     return () => {
-      if (queueState === "waiting") {
+      if (queueStateRef.current === "waiting") {
         leaveQueue();
       }
     };
@@ -526,10 +553,19 @@ export function CallPage() {
           stream.getTracks().forEach((t) => t.stop());
           return;
         }
+        applyTrackToggles(stream);
         localStreamRef.current = stream;
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
       })
-      .catch(() => {/* camera denied — preview stays black */});
+      .catch(() => {
+        if (active) {
+          setToast({
+            text: "Camera and microphone are blocked. Allow access in your browser settings, then reload.",
+            tone: "error",
+            sticky: true
+          });
+        }
+      });
     return () => {
       active = false;
       localStreamRef.current?.getTracks().forEach((t) => t.stop());
@@ -562,6 +598,7 @@ export function CallPage() {
         ]);
         if (cancelled) return;
 
+        applyTrackToggles(localStream);
         localStreamRef.current = localStream;
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = localStream;
@@ -642,7 +679,7 @@ export function CallPage() {
           });
           if (pc.connectionState === "failed" || pc.connectionState === "disconnected") {
             posthog.capture("webrtc_failed", { state: pc.connectionState });
-            setError("Could not connect. Please try another match.");
+            setToast({ text: "Could not connect. Please try another match.", tone: "error" });
           }
         };
 
@@ -664,6 +701,9 @@ export function CallPage() {
           }));
         }
       } catch (caught) {
+        // Cleanup closes the peer connection mid-await; don't surface those
+        // rejections as setup failures.
+        if (cancelled) return;
         updateDebug({
           stage: "Call setup failed",
           media: "error",
@@ -671,7 +711,11 @@ export function CallPage() {
           methodTone: "bad",
           lastEvent: caught instanceof Error ? caught.message : "Could not start the call"
         });
-        setError(caught instanceof Error ? caught.message : "Could not start the call");
+        setToast({
+          text: caught instanceof Error ? caught.message : "Could not start the call",
+          tone: "error",
+          sticky: true
+        });
       }
     }
 
@@ -755,7 +799,7 @@ export function CallPage() {
       setTimeLeft(remaining);
       if (remaining <= WARN_AT_MS && !warnedRef.current) {
         warnedRef.current = true;
-        setNotice("5 minutes remaining in this session.");
+        setToast({ text: "5 minutes remaining in this session.", tone: "info" });
       }
     }, 1000);
     return () => window.clearInterval(timer);
@@ -775,7 +819,10 @@ export function CallPage() {
 
       if (["offer", "answer", "ice-candidate"].includes(msg.type)) {
         processSignal(msg).catch((caught) => {
-          setError(caught instanceof Error ? caught.message : "Could not process WebRTC signal");
+          setToast({
+            text: caught instanceof Error ? caught.message : "Could not process WebRTC signal",
+            tone: "error"
+          });
         });
       }
     }
@@ -788,6 +835,7 @@ export function CallPage() {
 
   function toggleMic() {
     const next = !micEnabled;
+    micEnabledRef.current = next;
     localStreamRef.current?.getAudioTracks().forEach((track) => {
       track.enabled = next;
     });
@@ -800,6 +848,7 @@ export function CallPage() {
 
   function toggleCamera() {
     const next = !cameraEnabled;
+    cameraEnabledRef.current = next;
     localStreamRef.current?.getVideoTracks().forEach((track) => {
       track.enabled = next;
     });
@@ -837,18 +886,23 @@ export function CallPage() {
     if (!match) {
       return;
     }
-    setError(null);
-    await apiFetch("/api/reports", {
-      method: "POST",
-      body: JSON.stringify({
-        reportedUserID: match.partnerID,
-        roomID,
-        reason: reportReason,
-        details: reportDetails
-      })
-    });
+    setReportError(null);
+    try {
+      await apiFetch("/api/reports", {
+        method: "POST",
+        body: JSON.stringify({
+          reportedUserID: match.partnerID,
+          roomID,
+          reason: reportReason,
+          details: reportDetails
+        })
+      });
+    } catch (caught) {
+      setReportError(caught instanceof Error ? caught.message : "Could not submit the report.");
+      return;
+    }
     setReportOpen(false);
-    setNotice("Report submitted.");
+    setToast({ text: "Report submitted.", tone: "info" });
   }
 
   const debugRows = [
@@ -953,14 +1007,21 @@ export function CallPage() {
         cameraEnabled={cameraEnabled}
         onToggleMic={toggleMic}
         onToggleCamera={toggleCamera}
-        onReport={waitingForMatch ? undefined : () => setReportOpen(true)}
+        onReport={
+          waitingForMatch
+            ? undefined
+            : () => {
+                setReportError(null);
+                setReportOpen(true);
+              }
+        }
         onSkip={waitingForMatch ? undefined : skipCall}
         onLeave={leaveCall}
       />
 
-      {(error || notice) && (
+      {toast && (
         <div className="toast" role="status">
-          {error ?? notice}
+          {toast.text}
         </div>
       )}
 
@@ -986,6 +1047,7 @@ export function CallPage() {
                 rows={4}
               />
             </label>
+            {reportError && <p className="error">{reportError}</p>}
             <div className="modal-actions">
               <button className="secondary" onClick={() => setReportOpen(false)}>
                 Cancel

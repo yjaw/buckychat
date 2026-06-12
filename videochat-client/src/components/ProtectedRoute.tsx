@@ -4,7 +4,7 @@ import { Ban, Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { session, profile, loading, profileError } = useAuth();
+  const { session, profile, loading, profileError, refreshProfile, signOut } = useAuth();
 
   if (loading) {
     return (
@@ -30,8 +30,26 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     );
   }
 
+  // A session without a profile means /api/me failed. Don't redirect to
+  // /login here — GuestRoute would bounce a signed-in user straight back,
+  // creating an infinite redirect loop.
   if (!profile) {
-    return <Navigate to="/login?unconfirmed=1" replace />;
+    return (
+      <main className="center-screen">
+        <section className="panel narrow">
+          <h1>Could not load your account</h1>
+          <p>{profileError ?? "Something went wrong while loading your profile."}</p>
+          <div className="modal-actions">
+            <button className="primary" onClick={() => refreshProfile()}>
+              Try again
+            </button>
+            <button className="secondary" onClick={() => signOut()}>
+              Sign out
+            </button>
+          </div>
+        </section>
+      </main>
+    );
   }
 
   return children;
