@@ -23,6 +23,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -101,8 +102,8 @@ func main() {
 	})
 
 	// app.Use registers middleware that runs on every request, in the order added.
-	app.Use(recover.New())  // catches panics and returns 500 instead of crashing
-	app.Use(logger.New())   // logs method, path, status, and latency for every request
+	app.Use(recover.New()) // catches panics and returns 500 instead of crashing
+	app.Use(logger.New())  // logs method, path, status, and latency for every request
 	app.Use(cors.New(cors.Config{
 		// Only the frontend origin is allowed to make cross-origin requests.
 		AllowOrigins:     cfg.ClientOrigin,
@@ -175,13 +176,31 @@ func main() {
 		}
 
 		// Trim whitespace before validating so " " is treated the same as "".
+		body.ReportedUserID = strings.TrimSpace(body.ReportedUserID)
+		body.RoomID = strings.TrimSpace(body.RoomID)
 		body.Reason = strings.TrimSpace(body.Reason)
 		body.Details = strings.TrimSpace(body.Details)
+		reportedUserID, err := uuid.Parse(body.ReportedUserID)
+		if err != nil {
+			return httpx.Error(c, fiber.StatusBadRequest, "reportedUserID must be a valid user id")
+		}
+		roomID, err := uuid.Parse(body.RoomID)
+		if err != nil {
+			return httpx.Error(c, fiber.StatusBadRequest, "roomID must be a valid room id")
+		}
+		body.ReportedUserID = reportedUserID.String()
+		body.RoomID = roomID.String()
+		if body.ReportedUserID == user.ID {
+			return httpx.Error(c, fiber.StatusBadRequest, "cannot report yourself")
+		}
 		if body.Reason == "" || len(body.Reason) > 80 {
 			return httpx.Error(c, fiber.StatusBadRequest, "reason is required and must be under 80 characters")
 		}
 		if len(body.Details) > 1000 {
 			return httpx.Error(c, fiber.StatusBadRequest, "details must be under 1000 characters")
+		}
+		if !hub.CanReportMatch(user.ID, body.ReportedUserID, body.RoomID) {
+			return httpx.Error(c, fiber.StatusForbidden, "report must reference an active match")
 		}
 
 		ctx, cancel := context.WithTimeout(c.UserContext(), 3*time.Second)
@@ -213,9 +232,18 @@ func main() {
 	admin.Post("/users/:id/ban", func(c *fiber.Ctx) error {
 		user, _ := auth.CurrentUser(c)
 		// c.Params reads the :id segment from the URL path.
-		targetID := c.Params("id")
+		targetID := strings.TrimSpace(c.Params("id"))
+		parsedTargetID, err := uuid.Parse(targetID)
+		if err != nil {
+			return httpx.Error(c, fiber.StatusBadRequest, "user id must be valid")
+		}
+		targetID = parsedTargetID.String()
 		var body banRequest
-		_ = c.BodyParser(&body) // reason is optional; default applied below
+		if len(c.Body()) > 0 {
+			if err := c.BodyParser(&body); err != nil {
+				return httpx.Error(c, fiber.StatusBadRequest, "invalid ban body")
+			}
+		}
 		body.Reason = strings.TrimSpace(body.Reason)
 		if body.Reason == "" {
 			body.Reason = "Admin ban"

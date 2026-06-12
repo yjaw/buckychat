@@ -19,8 +19,8 @@ import (
 const (
 	pingInterval  = 30 * time.Second
 	pongWait      = 60 * time.Second
-	maxRoomAge    = 30 * time.Minute
-	roomScanEvery = 5 * time.Minute
+	maxRoomAge    = 20 * time.Minute
+	roomScanEvery = 30 * time.Second
 )
 
 type Hub struct {
@@ -43,6 +43,9 @@ type Client struct {
 	conn *websocket.Conn
 	send chan Outgoing
 	hub  *Hub
+
+	mu     sync.Mutex
+	closed bool
 }
 
 type Room struct {
@@ -110,23 +113,23 @@ func (h *Hub) expireRooms() {
 
 		for _, roomID := range expired {
 			log.Printf("hub: closing stale room %s (exceeded %v)", roomID, maxRoomAge)
+			var clients []*Client
 			h.mu.Lock()
 			room, ok := h.rooms[roomID]
 			if ok {
 				delete(h.rooms, roomID)
 				delete(h.clientRooms, room.UserA)
 				delete(h.clientRooms, room.UserB)
+				if client := h.clients[room.UserA]; client != nil {
+					clients = append(clients, client)
+				}
+				if client := h.clients[room.UserB]; client != nil {
+					clients = append(clients, client)
+				}
 			}
 			h.mu.Unlock()
-			if ok {
-				for _, clientID := range []string{room.UserA, room.UserB} {
-					h.mu.Lock()
-					client := h.clients[clientID]
-					h.mu.Unlock()
-					if client != nil {
-						client.sendMessage(Outgoing{Type: "partner_left", RoomID: roomID})
-					}
-				}
+			for _, client := range clients {
+				client.sendMessage(Outgoing{Type: "partner_left", RoomID: roomID})
 			}
 		}
 	}
@@ -229,16 +232,13 @@ func (h *Hub) register(client *Client) {
 
 func (h *Hub) unregister(client *Client) {
 	h.mu.Lock()
-	defer h.mu.Unlock()
-
-	if h.clients[client.ID] != client {
-		return
+	if h.clients[client.ID] == client {
+		delete(h.clients, client.ID)
+		h.removeWaitingLocked(client.ID)
+		h.endRoomLocked(client.ID, "partner_left")
 	}
-	delete(h.clients, client.ID)
-	h.removeWaitingLocked(client.ID)
-	h.endRoomLocked(client.ID, "partner_left")
-	close(client.send)
-	_ = client.conn.Close()
+	h.mu.Unlock()
+	client.closeSendAndConn()
 }
 
 type Stats struct {
@@ -273,8 +273,25 @@ func (h *Hub) Kick(userID string) {
 
 	for _, client := range clients {
 		client.sendMessage(Outgoing{Type: "banned", Message: "Your account has been banned."})
-		client.close()
+		client.closeSendAndConn()
 	}
+}
+
+func (h *Hub) CanReportMatch(reporterUserID, reportedUserID, roomID string) bool {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	room, ok := h.rooms[roomID]
+	if !ok {
+		return false
+	}
+	userA := h.clients[room.UserA]
+	userB := h.clients[room.UserB]
+	if userA == nil || userB == nil {
+		return false
+	}
+	return (userA.User.ID == reporterUserID && userB.User.ID == reportedUserID) ||
+		(userB.User.ID == reporterUserID && userA.User.ID == reportedUserID)
 }
 
 func (h *Hub) handleMessage(client *Client, msg Incoming) {
@@ -440,7 +457,7 @@ func (h *Hub) closeUserConnectionsLocked(userID string) {
 		h.endRoomLocked(client.ID, "partner_left")
 		delete(h.clients, client.ID)
 		client.sendMessage(Outgoing{Type: "duplicate_session", Message: "You signed in from another device."})
-		client.close()
+		client.closeSendAndConn()
 	}
 }
 
@@ -488,13 +505,34 @@ func (c *Client) writeLoop() {
 }
 
 func (c *Client) sendMessage(msg Outgoing) {
+	c.mu.Lock()
+	if c.closed {
+		c.mu.Unlock()
+		return
+	}
 	select {
 	case c.send <- msg:
+		c.mu.Unlock()
 	default:
+		c.closed = true
+		close(c.send)
+		c.mu.Unlock()
 		c.close()
 	}
 }
 
 func (c *Client) close() {
-	_ = c.conn.Close()
+	if c.conn != nil {
+		_ = c.conn.Close()
+	}
+}
+
+func (c *Client) closeSendAndConn() {
+	c.mu.Lock()
+	if !c.closed {
+		c.closed = true
+		close(c.send)
+	}
+	c.mu.Unlock()
+	c.close()
 }

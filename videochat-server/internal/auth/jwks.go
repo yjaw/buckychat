@@ -68,6 +68,7 @@ func (v *Verifier) Verify(ctx context.Context, raw string) (User, error) {
 
 	options := []jwt.ParserOption{
 		jwt.WithExpirationRequired(),
+		jwt.WithAudience("authenticated"),
 		jwt.WithValidMethods([]string{"RS256", "ES256", "HS256"}),
 	}
 	if v.issuer != "" {
@@ -86,6 +87,9 @@ func (v *Verifier) Verify(ctx context.Context, raw string) (User, error) {
 	}
 	if claims.Subject == "" || claims.Email == "" {
 		return User{}, errors.New("token is missing required claims")
+	}
+	if claims.Role != "authenticated" {
+		return User{}, errors.New("token does not have authenticated role")
 	}
 	if !strings.EqualFold(emailDomain(claims.Email), "wisc.edu") {
 		return User{}, errors.New("only wisc.edu accounts are allowed")
