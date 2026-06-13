@@ -3,11 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Search, X, MonitorSmartphone } from "lucide-react";
 import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { CameraPermissionBanner } from "../components/CameraPermissionBanner";
+import { VirtualCameraBanner } from "../components/VirtualCameraBanner";
 import { ConnectionErrorBanner } from "../components/ConnectionErrorBanner";
 import { PageFooter } from "../components/PageFooter";
 import { useAuth } from "../context/AuthContext";
 import { useMatch } from "../context/MatchContext";
 import { useCameraPermission } from "../hooks/useCameraPermission";
+import { useVirtualCamera } from "../hooks/useVirtualCamera";
 import { useStats } from "../hooks/useStats";
 
 const SUBTITLES = [
@@ -56,6 +58,7 @@ export function LobbyPage() {
   const duplicateSession = error === "duplicate_session";
   const { state: cameraPermission } = useCameraPermission();
   const cameraBlocked = cameraPermission === "denied";
+  const virtualCameraDetected = useVirtualCamera();
 
   function startMatchSearch() {
     joinQueue();
@@ -65,6 +68,7 @@ export function LobbyPage() {
   return (
     <main className="lobby-page">
       {cameraBlocked && <CameraPermissionBanner />}
+      {!cameraBlocked && virtualCameraDetected && <VirtualCameraBanner />}
       {wsError && <ConnectionErrorBanner kind="error" />}
       <header className="landing-header page-header">
         <Link className="landing-brand" to="/lobby" aria-label="BuckyChat home">
