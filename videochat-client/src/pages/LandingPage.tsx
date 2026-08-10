@@ -36,13 +36,12 @@ export function LandingPage() {
       <section className="landing-hero" aria-labelledby="landing-title">
         <div className="landing-hero-copy">
           <h1 id="landing-title">
-            <span className="landing-title-main">Meet in seconds</span>
-            <span>Go live together</span>
+            <span className="landing-title-main">Where badgers</span>
+            <span>make new friends</span>
           </h1>
           <p>
             BuckyChat is a simple live video lobby for campus communities. Create an
-            account, jump into a room, and start face-to-face conversations without
-            the noise.
+            account, jump into a room, and meet badgers of all stripes.
           </p>
           <div className="landing-stats">
             <span><span className="stat-dot online" />{(stats?.online ?? 0).toLocaleString()} Online</span>
