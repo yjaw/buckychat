@@ -13,3 +13,4 @@ coverage/
 .vite/
 .turbo/
 tmp/
+videochat-server/loadtest/
