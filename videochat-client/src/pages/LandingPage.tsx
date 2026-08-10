@@ -81,7 +81,16 @@ export function LandingPage() {
               ))}
             </div>
           </div>
-          <p>BuckyChat is powered by these companies and an unemployed CS graduate</p>
+          <p>
+            Powered by these great PaaS platforms, maintained with love by{" "}
+            <a
+              href="https://www.linkedin.com/in/yjaw/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              a passionate badger
+            </a>
+          </p>
         </div>
       </section>
 
