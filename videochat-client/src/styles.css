@@ -180,6 +180,35 @@ a {
   line-height: 1.55;
 }
 
+.landing-steps {
+  width: 100%;
+  max-width: 650px;
+  margin: 38px auto 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: landing-step;
+  text-align: center;
+}
+
+.landing-steps li {
+  counter-increment: landing-step;
+  display: inline;
+  color: #252525;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.landing-steps li:not(:last-child)::after {
+  content: "\00A0\00A0";
+}
+
+.landing-steps li::before {
+  content: counter(landing-step) ". ";
+  color: var(--badger-red);
+  font-weight: 800;
+}
+
 .landing-stats {
   display: flex;
   justify-content: center;

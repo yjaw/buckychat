@@ -39,10 +39,11 @@ export function LandingPage() {
             <span className="landing-title-main">Where badgers</span>
             <span>make new friends</span>
           </h1>
-          <p>
-            BuckyChat is a simple live video lobby for campus communities. Create an
-            account, jump into a room, and meet badgers of all stripes.
-          </p>
+          <ol className="landing-steps">
+            <li>Create an account</li>
+            <li>Jump into a room</li>
+            <li>Chat with amazing new people!</li>
+          </ol>
           <div className="landing-stats">
             <span><span className="stat-dot online" />{(stats?.online ?? 0).toLocaleString()} Online</span>
             <span><span className="stat-dot gray" />{(stats?.userCount ?? 0).toLocaleString()} Badger{(stats?.userCount ?? 0) !== 1 ? "s" : ""}</span>
