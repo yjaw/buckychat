@@ -8,6 +8,7 @@ type Profile = {
   id: string;
   email: string;
   status: "active" | "banned";
+  referralCode?: string;
 };
 
 type AuthContextValue = {

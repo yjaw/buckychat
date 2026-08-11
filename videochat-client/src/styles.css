@@ -1316,6 +1316,40 @@ button svg,
   height: 18px;
 }
 
+.lobby-header-button.has-promo {
+  position: relative;
+}
+
+.promo-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--badger-red);
+  box-shadow: 0 0 0 0 rgba(197, 5, 12, 0.55);
+  animation: promo-ping 1.6s ease-out infinite;
+}
+
+@keyframes promo-ping {
+  0% {
+    box-shadow: 0 0 0 0 rgba(197, 5, 12, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(197, 5, 12, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(197, 5, 12, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-dot {
+    animation: none;
+  }
+}
+
 .lobby-band {
   min-height: 420px;
   display: grid;
@@ -1914,6 +1948,66 @@ button svg,
   background: #ffffff;
 }
 
+.app-shell > .panel,
+.app-shell > .table-wrap {
+  margin-bottom: 24px;
+}
+
+.table-wrap h2 {
+  margin: 0;
+  padding: 16px 14px 0;
+  font-size: 1rem;
+}
+
+.referral-link-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.referral-link-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #d7dde8;
+  border-radius: 8px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.85rem;
+  background: #f8fafc;
+  color: #111827;
+}
+
+.referral-link-row .secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.promo-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #d7dde8;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 18px 50px rgb(15 23 42 / 0.08);
+}
+
+.promo-banner-image {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.promo-banner p {
+  margin: 0;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -2268,6 +2362,20 @@ th {
   flex-shrink: 0;
 }
 
+.legal-modal-title {
+  margin: 0;
+  padding: 7px 4px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #121212;
+}
+
+.legal-modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .legal-modal-tabs {
   display: flex;
   gap: 6px;
@@ -2330,6 +2438,10 @@ th {
 .legal-modal-content {
   display: grid;
   gap: 28px;
+}
+
+.legal-modal-content section {
+  min-width: 0;
 }
 
 .legal-modal-content section h2 {

@@ -11,6 +11,11 @@ import { hasWiscDomain, normalizeEmail } from "../lib/email";
 
 const resendCooldownSeconds = 60;
 
+function readReferralCode() {
+  const code = new URLSearchParams(window.location.search).get("ref")?.trim().toLowerCase();
+  return code || null;
+}
+
 function authErrorMessage(message: string) {
   if (message.toLowerCase().includes("error sending confirmation email")) {
     return "Supabase could not send the confirmation email. Check custom SMTP, sender verification, and Auth logs.";
@@ -106,11 +111,13 @@ export function RegisterPage() {
     }
     setLoading(true);
     try {
+      const referralCode = readReferralCode();
       const { data, error: authError } = await supabase.auth.signUp({
         email: normalizedEmail,
         password,
         options: {
-          emailRedirectTo: getAuthRedirectTo()
+          emailRedirectTo: getAuthRedirectTo(),
+          ...(referralCode ? { data: { referral_code: referralCode } } : {})
         }
       });
 

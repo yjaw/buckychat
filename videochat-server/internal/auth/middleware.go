@@ -15,7 +15,8 @@ const userLocalKey = "madfriends.user"
 
 type AuthenticatedUser struct {
 	User
-	Status string `json:"status"`
+	Status       string `json:"status"`
+	ReferralCode string `json:"referralCode"`
 }
 
 func RequireActiveUser(verifier *Verifier, store *db.Store) fiber.Handler {
@@ -38,8 +39,9 @@ func RequireActiveUser(verifier *Verifier, store *db.Store) fiber.Handler {
 		}
 
 		c.Locals(userLocalKey, AuthenticatedUser{
-			User:   user,
-			Status: profile.Status,
+			User:         user,
+			Status:       profile.Status,
+			ReferralCode: profile.ReferralCode,
 		})
 		return c.Next()
 	}

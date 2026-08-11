@@ -5,6 +5,7 @@ import { BuckyChatLogo } from "../components/BuckyChatLogo";
 import { CameraPermissionBanner } from "../components/CameraPermissionBanner";
 import { VirtualCameraBanner } from "../components/VirtualCameraBanner";
 import { ConnectionErrorBanner } from "../components/ConnectionErrorBanner";
+import { InviteModal } from "../components/InviteModal";
 import { PageFooter } from "../components/PageFooter";
 import { useAuth } from "../context/AuthContext";
 import { useMatch } from "../context/MatchContext";
@@ -75,6 +76,10 @@ export function LobbyPage() {
           <BuckyChatLogo markClassName="landing-mark" />
         </Link>
         <div className="landing-actions lobby-header-actions">
+          <Link className="lobby-header-button has-promo" to="?invite=1">
+            Invite friends
+            <span className="promo-dot" aria-hidden="true" />
+          </Link>
           <button
             className="lobby-header-button danger"
             type="button"
@@ -130,6 +135,7 @@ export function LobbyPage() {
       </div>
 
       <PageFooter />
+      <InviteModal />
     </main>
   );
 }

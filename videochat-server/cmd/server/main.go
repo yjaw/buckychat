@@ -213,6 +213,25 @@ func main() {
 		return c.Status(fiber.StatusCreated).JSON(report)
 	})
 
+	// GET /api/referrals returns the current user's referral code plus the
+	// people they've successfully referred, each with its lottery number.
+	api.Get("/referrals", requireUser, func(c *fiber.Ctx) error {
+		user, _ := auth.CurrentUser(c)
+
+		ctx, cancel := context.WithTimeout(c.UserContext(), 3*time.Second)
+		defer cancel()
+
+		referrals, err := store.ListReferralsByReferrer(ctx, user.ID)
+		if err != nil {
+			return httpx.Error(c, fiber.StatusInternalServerError, "could not list referrals")
+		}
+
+		return c.JSON(fiber.Map{
+			"referralCode": user.ReferralCode,
+			"referrals":    referrals,
+		})
+	})
+
 	// admin is a sub-group under /api/admin. Both requireUser and requireAdmin
 	// run as middleware on every route in this group.
 	admin := api.Group("/admin", requireUser, requireAdmin(cfg.AdminEmails))

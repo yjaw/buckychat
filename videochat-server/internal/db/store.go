@@ -14,10 +14,18 @@ type Store struct {
 }
 
 type Profile struct {
-	ID        string    `json:"id"`
-	Email     string    `json:"email"`
-	Status    string    `json:"status"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID           string    `json:"id"`
+	Email        string    `json:"email"`
+	Status       string    `json:"status"`
+	ReferralCode string    `json:"referralCode"`
+	CreatedAt    time.Time `json:"createdAt"`
+}
+
+type Referral struct {
+	ID            string    `json:"id"`
+	LotteryNumber int64     `json:"lotteryNumber"`
+	ReferredEmail string    `json:"referredEmail"`
+	CreatedAt     time.Time `json:"createdAt"`
 }
 
 type Report struct {
@@ -55,10 +63,10 @@ func (s *Store) Close() {
 func (s *Store) GetProfile(ctx context.Context, userID string) (Profile, error) {
 	var p Profile
 	err := s.Pool.QueryRow(ctx, `
-		select id::text, email, status, created_at
+		select id::text, email, status, referral_code, created_at
 		from public.profiles
 		where id = $1
-	`, userID).Scan(&p.ID, &p.Email, &p.Status, &p.CreatedAt)
+	`, userID).Scan(&p.ID, &p.Email, &p.Status, &p.ReferralCode, &p.CreatedAt)
 	return p, err
 }
 
@@ -68,9 +76,33 @@ func (s *Store) EnsureProfile(ctx context.Context, userID, email string) (Profil
 		insert into public.profiles (id, email)
 		values ($1, $2)
 		on conflict (id) do update set email = excluded.email
-		returning id::text, email, status, created_at
-	`, userID, email).Scan(&p.ID, &p.Email, &p.Status, &p.CreatedAt)
+		returning id::text, email, status, referral_code, created_at
+	`, userID, email).Scan(&p.ID, &p.Email, &p.Status, &p.ReferralCode, &p.CreatedAt)
 	return p, err
+}
+
+func (s *Store) ListReferralsByReferrer(ctx context.Context, referrerID string) ([]Referral, error) {
+	rows, err := s.Pool.Query(ctx, `
+		select r.id::text, r.lottery_number, p.email, r.created_at
+		from public.referrals r
+		join public.profiles p on p.id = r.referred_user_id
+		where r.referrer_id = $1
+		order by r.created_at desc
+	`, referrerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	referrals := []Referral{}
+	for rows.Next() {
+		var r Referral
+		if err := rows.Scan(&r.ID, &r.LotteryNumber, &r.ReferredEmail, &r.CreatedAt); err != nil {
+			return nil, err
+		}
+		referrals = append(referrals, r)
+	}
+	return referrals, rows.Err()
 }
 
 func (s *Store) CreateReport(ctx context.Context, reporterID, reportedUserID, roomID, reason, details string) (Report, error) {
