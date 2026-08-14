@@ -85,8 +85,6 @@ export function LandingPage() {
             Powered by these great PaaS platforms, maintained with love by{" "}
             <a
               href="https://www.linkedin.com/in/yjaw/"
-              target="_blank"
-              rel="noreferrer"
             >
               a passionate badger
             </a>
